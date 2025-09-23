@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}?vcenter-hero-1">
+</head>
+<body class="bg">
+  <div class="brand"><span>1 x</span> BET</div>
+
+  <nav class="nav">
+    <a>HOME</a><a>GAME SELECTION</a><a>BALANCE</a><a>REPORT</a>
+    <a class="muted">DASHBOARD(ADMIN)</a>
+    <a class="muted">VIEW REPORTS(ADMIN)</a>
+  </nav>
+
+  <div class="wrap">
+    <main class="grid">
+      <!-- LEFT: CARD -->
+      <section class="card">
+        <h2>Sign up</h2>
+
+        <form id="signup-form">
+          <label for="full_name">Full name</label>
+          <input id="full_name" type="text" placeholder="Your full name" required />
+
+          <label for="age">Age</label>
+          <input id="age" type="number" min="20" placeholder="e.g. 20+" required />
+
+          <label for="phone">Phone number</label>
+          <input id="phone" type="tel" placeholder="0xxxxxxxxx" required />
+
+          <label for="email">Email Address</label>
+          <input id="email" type="email" placeholder="yourname@gmail.com" required />
+
+          <div class="row">
+            <div class="col">
+              <label for="password">Password</label>
+              <div class="password-wrap">
+                <input id="password" type="password" placeholder="••••••••" required />
+                <button type="button" class="eye" data-target="password" aria-label="toggle password">👁️</button>
+              </div>
+            </div>
+            <div class="col">
+              <label for="confirm_password">Confirm Password</label>
+              <div class="password-wrap">
+                <input id="confirm_password" type="password" placeholder="••••••••" required />
+                <button type="button" class="eye" data-target="confirm_password" aria-label="toggle password">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <button id="btn" class="btn" type="submit">Sign up</button>
+          
+          <div class="terms-row">
+            <input type="checkbox" id="agree" required />
+            <span class="terms-text">
+              I agree to the <b>Terms of Service</b> and <b>Privacy Policy</b>.
+            </span>
+          </div>
+
+          <p id="err" class="err"></p>
+          <p id="msg" class="msg"></p>
+        </form>
+      </section>
+
+      <!-- RIGHT: HERO -->
+      <section class="hero hero--ref">
+        <h1>JOIN FOR FREE</h1>
+        <p class="hero-copy">
+          Investment comes with risks, but they are risks<br>
+          that create opportunities and value.<br>
+          <span class="red">High Risk, High Returns</span> start your journey<br>
+          with us today
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', path='register.js') }}"></script>
+</body>
+</html>
