@@ -1,9 +1,8 @@
-fastapi
-uvicorn[standard]
-jinja2
-SQLAlchemy
-psycopg2-binary
-passlib[bcrypt]
-pydantic>=2,<3
-email-validator
-python-dotenv
+fastapi==0.114.2
+uvicorn[standard]==0.30.6
+SQLAlchemy==2.0.32
+psycopg2-binary==2.9.9
+pydantic[email]==2.9.2
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+Jinja2==3.1.4

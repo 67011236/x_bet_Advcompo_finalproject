@@ -6,15 +6,17 @@ from pydantic import BaseModel, EmailStr, field_validator
 from passlib.hash import bcrypt
 
 from sqlalchemy import (
-    Column, Integer, String, DateTime, Text, CheckConstraint, create_engine
+    Column,
+    Integer,
+    String,
+    DateTime,
+    CheckConstraint,
+    create_engine,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # ---------- DB ----------
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/acpdb"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/acpdb")
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -23,18 +25,20 @@ Base = declarative_base()
 # ---------- SQLAlchemy Model ----------
 class User(Base):
     __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(Text, nullable=False)
+    full_name = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
     phone = Column(String(16), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
-    password_hash = Column(Text, nullable=False)
+    password_hash = Column(String, nullable=False)
     role = Column(String(16), nullable=False, default="user")
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     __table_args__ = (
         CheckConstraint("age >= 0", name="age_non_negative"),
     )
+
 
 def create_db():
     Base.metadata.create_all(bind=engine)
@@ -52,7 +56,7 @@ class RegisterIn(BaseModel):
     @field_validator("email")
     @classmethod
     def email_must_be_gmail(cls, v):
-        if not v.endswith("@gmail.com"):
+        if not str(v).endswith("@gmail.com"):
             raise ValueError("Email must end with @gmail.com")
         return v
 
@@ -85,10 +89,12 @@ class RegisterIn(BaseModel):
             raise ValueError("You must agree to Terms & Privacy")
         return v
 
+
 class RegisterOut(BaseModel):
     id: int
     email: EmailStr
     full_name: str
+
 
 def hash_password(raw: str) -> str:
     return bcrypt.hash(raw)
