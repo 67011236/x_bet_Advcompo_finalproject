@@ -1,84 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sign up</title>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}?vcenter-hero-1">
+  <meta charset="utf-8">
+  <title>Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ✅ ดึง base.css ที่มีพื้นหลัง -->
+  <link rel="stylesheet" href="/static/base.css">
+
+  <!-- ✅ ดึง styles-register.css สำหรับสไตล์ฟอร์ม -->
+  <link rel="stylesheet" href="/static/styles-register.css">
+  <!-- ✅ ดึง header.css สำหรับเมนู -->
+  <link rel="stylesheet" href="/static/header.css">
 </head>
-<body class="bg">
-  <div class="brand"><span>1 x</span> BET</div>
 
-  <nav class="nav">
-    <a>HOME</a><a>GAME SELECTION</a><a>BALANCE</a><a>REPORT</a>
-    <a class="muted">DASHBOARD(ADMIN)</a>
-    <a class="muted">VIEW REPORTS(ADMIN)</a>
-  </nav>
+<body>
+  {% include "header.html" %}
 
-  <div class="wrap">
-    <main class="grid">
-      <!-- LEFT: CARD -->
-      <section class="card">
-        <h2>Sign up</h2>
+  <main class="container">
+    <div class="grid">
+      <!-- LEFT: REGISTER FORM -->
+      <section class="panel">
+        <h1>Sign up</h1>
 
-        <form id="signup-form">
-          <label for="full_name">Full name</label>
-          <input id="full_name" type="text" placeholder="Your full name" required />
+        <!-- ให้ฟอร์มมี id เพื่อให้ JS จับ event ได้ง่าย -->
+        <form id="register-form" action="/api/register" method="post">
+          <div class="field">
+            {% if error %}
+            <div class="error-box">
+              <p>{{ error }}</p>
+            </div>
+            {% endif %}
+          </div>
 
-          <label for="age">Age</label>
-          <input id="age" type="number" min="20" placeholder="e.g. 20+" required />
+          <div class="field">
+            <label>Full name</label>
+            <input class="input" type="text" name="full_name" id="full_name" placeholder="Your full name" required
+              value="{{ (old.full_name if old else '') }}" />
+          </div>
 
-          <label for="phone">Phone number</label>
-          <input id="phone" type="tel" placeholder="0xxxxxxxxx" required />
+          <div class="field">
+            <label>Age</label>
+            <input class="input" type="number" name="age" id="age" placeholder="e.g. 20+" required
+              value="{{ (old.age if old else '') }}" />
+          </div>
 
-          <label for="email">Email Address</label>
-          <input id="email" type="email" placeholder="yourname@gmail.com" required />
+          <div class="field">
+            <label>Phone number</label>
+            <input class="input" type="text" name="phone" id="phone" placeholder="0xxxxxxxxx" required
+              value="{{ (old.phone if old else '') }}" />
+          </div>
+
+          <div class="field">
+            <label>Email Address</label>
+            <input class="input" type="email" name="email" id="email" placeholder="yourname@gmail.com" required
+              value="{{ (old.email if old else '') }}" />
+          </div>
 
           <div class="row">
-            <div class="col">
-              <label for="password">Password</label>
+            <div class="field col">
+              <label>Password</label>
               <div class="password-wrap">
-                <input id="password" type="password" placeholder="••••••••" required />
-                <button type="button" class="eye" data-target="password" aria-label="toggle password">👁️</button>
+                <input class="input" type="password" name="password" id="password" required />
+                <button type="button" class="eye" data-target="password" aria-label="Toggle password">👁️</button>
               </div>
             </div>
-            <div class="col">
-              <label for="confirm_password">Confirm Password</label>
+
+            <div class="field col">
+              <label>Confirm Password</label>
               <div class="password-wrap">
-                <input id="confirm_password" type="password" placeholder="••••••••" required />
-                <button type="button" class="eye" data-target="confirm_password" aria-label="toggle password">👁️</button>
+                <input class="input" type="password" name="confirm_password" id="confirm_password" required />
+                <button type="button" class="eye" data-target="confirm_password" aria-label="Toggle confirm">👁️</button>
               </div>
             </div>
           </div>
 
-          <button id="btn" class="btn" type="submit">Sign up</button>
-          
-          <div class="terms-row">
-            <input type="checkbox" id="agree" required />
-            <span class="terms-text">
-              I agree to the <b>Terms of Service</b> and <b>Privacy Policy</b>.
-            </span>
-          </div>
+          <p class="subtle" style="margin-top:12px">
+            <label style="display:inline-flex;gap:8px;align-items:center;">
+              <input type="checkbox" id="agree" name="agree" required {% if old and old.agree %}checked{% endif %} />
+              <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</span>
+            </label>
+          </p>
 
-          <p id="err" class="err"></p>
-          <p id="msg" class="msg"></p>
+          <button class="btn" type="submit">Sign up</button>
         </form>
+
       </section>
 
-      <!-- RIGHT: HERO -->
-      <section class="hero hero--ref">
-        <h1>JOIN FOR FREE</h1>
-        <p class="hero-copy">
-          Investment comes with risks, but they are risks<br>
-          that create opportunities and value.<br>
-          <span class="red">High Risk, High Returns</span> start your journey<br>
-          with us today
+
+      <!-- RIGHT: HERO TEXT -->
+      <section class="hero-block">
+        <h2 class="hero-title">JOIN FOR FREE</h2>
+        <p class="hero-desc">
+          Investment comes with risks, but they are risks that create opportunities and value.<br>
+          <span class="red">High Risk, High Returns</span> start your journey with us today
         </p>
-      </section>
-    </main>
-  </div>
 
-  <script src="{{ url_for('static', path='register.js') }}"></script>
+      </section>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('button.eye[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const input = document.getElementById(targetId);
+          if (!input) return;
+
+          input.type = (input.type === 'password') ? 'text' : 'password';
+          btn.textContent = (input.type === 'password') ? '👁️' : '🙈';
+        });
+      });
+    });
+
+    const emailEl = document.getElementById('email');
+    const phoneEl = document.getElementById('phone');
+    const ageEl = document.getElementById('age');
+
+    // Email must be @gmail.com
+    emailEl.addEventListener('input', () => {
+      emailEl.setCustomValidity('');
+      if (emailEl.validity.patternMismatch || emailEl.validity.typeMismatch) {
+        emailEl.setCustomValidity('Email must end with @gmail.com');
+      }
+    });
+
+    // Phone must start with 0 and be 10 digits
+    phoneEl.addEventListener('input', () => {
+      phoneEl.setCustomValidity('');
+      if (phoneEl.validity.patternMismatch) {
+        phoneEl.setCustomValidity('Phone number must start with 0 and contain 10 digits');
+      }
+    });
+
+    // Age must be at least 20
+    ageEl.addEventListener('input', () => {
+      ageEl.setCustomValidity('');
+      if (ageEl.validity.rangeUnderflow) {
+        ageEl.setCustomValidity('Age must be at least 20');
+      }
+    });
+
+
+  </script>
+
 </body>
+
 </html>

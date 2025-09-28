@@ -1,13 +1,15 @@
-// toggle show/hide password (ถ้าคุณมีปุ่มตาอยู่แล้วคงไว้ได้)
+// toggle show/hide password (ใช้ class .show แทนการ set text)
 document.querySelectorAll('.eye').forEach(btn => {
   btn.addEventListener('click', () => {
     const targetId = btn.getAttribute('data-target');
     const input = document.getElementById(targetId);
     if (!input) return;
-    input.type = input.type === 'password' ? 'text' : 'password';
-    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+    const nextType = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', nextType);
+    btn.classList.toggle('show', nextType === 'text');
   });
 });
+
 
 // submit form -> POST /api/register
 document.getElementById('signup-form').addEventListener('submit', async (e) => {

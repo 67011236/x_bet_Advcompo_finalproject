@@ -1,0 +1,64 @@
+/* ===== Global header variables ===== */
+:root{
+  --header-h: 72px;
+  --header-pad-x: 28px;
+  --header-gap: 24px;
+  --header-link-size: 12px;
+  --header-link-color: #e6f0ff;
+}
+
+/* กันคอนเทนต์โดนเฮดเดอร์ทับทุกหน้า */
+html, body { scroll-behavior: smooth; }
+body{ padding-top: var(--header-h); }
+
+/* ===== Header / Navbar (fixed, เหมือนกันทุกหน้า) ===== */
+header.navbar{
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--header-pad-x);
+  z-index: 1000;
+  /* โปร่งใสบนพื้นหลังรูป แต่ยังอ่านง่าย */
+  backdrop-filter: saturate(120%) blur(4px);
+}
+
+header.navbar .logo{
+  display: flex;
+  align-items: baseline;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 0 rgba(0,0,0,.25);
+  user-select: none;
+}
+header.navbar .logo .one{ color:#ffffff; }
+header.navbar .logo .red{ color:#ff3b3b; margin:0 6px; }
+header.navbar .logo .bet{ color:#ffffff; }
+
+header.navbar .menu{
+  display: flex;
+  align-items: center;
+  gap: var(--header-gap);
+  font-size: var(--header-link-size);
+  letter-spacing: .4px;
+}
+
+header.navbar .menu a{
+  color: var(--header-link-color);
+  text-decoration: none;
+  opacity: .95;
+}
+
+header.navbar .menu a:hover{
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* จอเล็ก: ลดช่องไฟนิดหน่อย */
+@media (max-width: 980px){
+  :root{ --header-h: 64px; --header-pad-x: 20px; --header-gap: 18px; }
+  header.navbar .logo{ font-size: 28px; }
+}
