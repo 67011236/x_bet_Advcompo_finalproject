@@ -1,30 +1,27 @@
 <header class="navbar">
-    <div class="logo">
-        <span class="one">1</span><span class="red">x</span><span class="bet">BET</span>
-    </div>
+  <div class="logo">
 
-    <nav class="menu">
-        <li><a href="/login">HOME</a></li>
-        <a>GAME SELECTION</a>
-        <li><a href="/balance">BALANCE</a></li>
-        <a>REPORT</a>
-        <!-- เพิ่ม class admin-only -->
-        <a class="admin-only" href="/dashboard">DASHBOARD(ADMIN)</a>
-        <a class="admin-only" href="/reports">VIEW REPORTS(ADMIN)</a>
-    </nav>
+    <span class="one">1</span><span class="red">x</span><span class="bet">BET</span>
+
+  </div>
+
+  <nav class="menu">
+    <a href="/balance">HOME</a>
+    <a href="/game-selection">GAME SELECTION</a>
+    <a href="/balance">BALANCE</a>
+    <a href="/report-user">REPORT</a>
+
+    {# โชว์เฉพาะแอดมิน: h2w@admin.com #}
+    {% set email_cookie = (request.cookies.get('useremail') or '') | lower %}
+    {% if email_cookie == 'h2w@admin.com' %}
+    <a href="/dashboard">DASHBOARD (ADMIN)</a>
+    <a href="/reports">VIEW REPORTS (ADMIN)</a>
+    {% endif %}
+
+    <span class="spacer"></span>
+    {% if email_cookie %}
+    <span class="who">{{ email_cookie }}</span>
+    <a href="/logout">Logout</a>
+    {% endif %}
+  </nav>
 </header>
-
-<!-- JS สำหรับซ่อนเมนู ถ้าไม่ใช่แอดมิน -->
-<script>
-  function getCookie(name){
-    return document.cookie.split(';')
-      .map(s => s.trim())
-      .find(s => s.startsWith(name + '='))?.split('=')[1] || '';
-  }
-  const ADMIN_EMAIL = "{{ ADMIN_EMAIL|e }}".toLowerCase();
-  const current = decodeURIComponent(getCookie('userEmail') || '').toLowerCase();
-
-  document.querySelectorAll('.admin-only').forEach(el=>{
-    el.style.display = current === ADMIN_EMAIL ? '' : 'none';
-  });
-</script>

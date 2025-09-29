@@ -50,3 +50,4 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     err.textContent = `❌ ${ex.message}`;
   }
 });
+

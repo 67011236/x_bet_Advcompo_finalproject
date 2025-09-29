@@ -2,7 +2,7 @@ fastapi==0.114.2
 uvicorn[standard]==0.30.6
 SQLAlchemy==2.0.32
 psycopg2-binary==2.9.9
-pydantic[email]==1.10.14   # downgrade มา v1
+pydantic[email]==1.10.14   
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
 python-multipart==0.0.9

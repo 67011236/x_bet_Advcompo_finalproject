@@ -7,35 +7,50 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
-from app.models import SessionLocal, User, create_db
-
-
-# ---- เพิ่ม import เหล่านี้ด้านบน ----
+from app.models import SessionLocal, User, create_db, ensure_admin
 import os
 from fastapi.responses import JSONResponse
-from starlette import status  # ถ้ายังไม่มีบรรทัดนี้
+from starlette import status  
+from sqlalchemy import select, func   
 
-# ---- ตั้งค่าบัญชีแอดมิน (อ่านจาก .env ถ้ามี) ----
-load_dotenv()
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "H2W@admin.com")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "H2W@admin.com").lower()  
 
+def _current_email(request: Request) -> str:
+    return (request.cookies.get("useremail") or "").strip()
+
+def _must_login(request: Request):
+    """ยังไม่ล็อกอิน → ส่ง redirect ไป /login; ถ้าล็อกอินแล้ว → คืน None"""
+    if not _current_email(request):
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    return None
+
+def _must_admin(request: Request):
+    """ไม่ใช่แอดมิน → เด้งกลับ /balance; ถ้าใช่ → คืน None"""
+    if _current_email(request).lower() != ADMIN_EMAIL:
+        return RedirectResponse(url="/balance", status_code=status.HTTP_303_SEE_OTHER)
+    return None
 
 # Static & templates
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-
 # ---------- Startup: make sure tables exist ----------
 @app.on_event("startup")
 def on_startup():
     create_db()
-
+    # dev only
+    with SessionLocal() as s:
+        ensure_admin(s)
 
 # ---------- PAGES ----------
 @app.get("/")
-async def root():
-    return RedirectResponse(url="/login")
+async def root(request: Request):
+    return RedirectResponse(
+        url="/balance" if _current_email(request) else "/login",
+        status_code=status.HTTP_303_SEE_OTHER
+    )
+
 @app.get("/", response_class=HTMLResponse)
 async def get_register_page(request: Request):
     # เสิร์ฟหน้า register พร้อม context ว่างสำหรับ error/old
@@ -44,7 +59,6 @@ async def get_register_page(request: Request):
         {"request": request, "error": None, "old": {}},
     )
 
-
 @app.get("/register", response_class=HTMLResponse)
 async def get_register_alias(request: Request):
     return templates.TemplateResponse(
@@ -52,31 +66,55 @@ async def get_register_alias(request: Request):
         {"request": request, "error": None, "old": {}},
     )
 
-
 @app.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-@app.get("/dashboard", response_class=HTMLResponse)
-async def get_dashboard(request: Request):
-    if request.cookies.get("userEmail") != ADMIN_EMAIL:
-        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+@app.get("/balance", response_class=HTMLResponse)
+async def balance_page(request: Request):
+    guard = _must_login(request)
+    if guard: return guard
+    return templates.TemplateResponse("balance.html", {"request": request})
 
 @app.get("/reports", response_class=HTMLResponse)
 async def get_reports(request: Request):
-    if request.cookies.get("userEmail") != ADMIN_EMAIL:
-        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    guard = _must_login(request)
+    if guard: return guard
+    admin_guard = _must_admin(request)
+    if admin_guard: return admin_guard
     return templates.TemplateResponse("reports.html", {"request": request})
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def get_dashboard(request: Request):
+    guard = _must_login(request)
+    if guard: return guard
+    admin_guard = _must_admin(request)
+    if admin_guard: return admin_guard
+    return templates.TemplateResponse("dashboard.html", {"request": request})
 
 @app.get("/balance", response_class=HTMLResponse)
 async def balance_page(request: Request):
     # บังคับให้ต้อง login ก่อน (มีคุกกี้ useremail)
     if not request.cookies.get("useremail"):
         return RedirectResponse(url="/login", status_code=303)
-
     return templates.TemplateResponse("balance.html", {"request": request})
 
+@app.get("/report-user", response_class=HTMLResponse)
+async def report_user(request: Request):
+    guard = _must_login(request)
+    if guard: return guard
+    return templates.TemplateResponse("report-user.html", {"request": request})
+
+@app.get("/logout")
+async def get_logout():
+    resp = RedirectResponse(url="/login", status_code=303)
+    resp.delete_cookie("useremail", path="/")
+    return resp
+@app.get("/game-selection", response_class=HTMLResponse)
+async def game_selection(request: Request):
+    guard = _must_login(request)
+    if guard: return guard
+    return templates.TemplateResponse("game-selection.html", {"request": request})
 
 # ---------- APIS ----------
 @app.post("/api/register", response_class=HTMLResponse)
@@ -170,44 +208,44 @@ async def post_register(request: Request):
     # สำเร็จ -> ไปหน้า login
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
-
 @app.post("/login")
-async def post_login(
-    request: Request,
-    email: str = Form(...),
-    password: str = Form(...)
-):
+async def post_login(request: Request, email: str = Form(...), password: str = Form(...)):
     db: Session = SessionLocal()
     try:
-        user = db.query(User).filter(User.email == email.strip()).first()
+        email_norm = email.strip().lower()
+        # ค้นหาแบบ case-insensitive
+        user = db.query(User).filter(func.lower(User.email) == email_norm).first()
 
         if not user:
-            # ไม่พบอีเมลในระบบ
             return templates.TemplateResponse(
                 "login.html",
                 {"request": request, "error": "Account does not exist."},
-                status_code=400
+                status_code=400,
             )
 
+        # ตรวจรหัสผ่านกับ bcrypt hash ใน DB
         if not bcrypt.verify(password, user.password_hash):
-            # รหัสผ่านไม่ถูก
             return templates.TemplateResponse(
                 "login.html",
                 {"request": request, "error": "Invalid password."},
-                status_code=400
+                status_code=400,
             )
 
-        # สำเร็จ → ตั้งคุกกี้ แล้วเด้งไป /balance
+        # ตั้ง cookie/session แล้วเด้งไป balance
         resp = RedirectResponse(url="/balance", status_code=status.HTTP_303_SEE_OTHER)
-        # เก็บอีเมลไว้ 7 วัน
-        resp.set_cookie(key="useremail", value=user.email, max_age=7*24*60*60, path="/")
+        # อย่างน้อยเก็บ email (lower) ไว้เช็คหน้า admin; ถ้าคุณมี session dict จะยิ่งดี
+        resp.set_cookie(key="useremail", value=user.email.lower(), max_age=7*24*60*60, path="/")
         return resp
     finally:
         db.close()
 
+# POST logout API (สำหรับ fetch/ajax)
 @app.post("/api/logout")
 async def api_logout():
     resp = JSONResponse({"message": "Logged out"})
-    resp.delete_cookie("userEmail", path="/")
+    resp.delete_cookie("useremail", path="/")
     return resp
+
+
+
 

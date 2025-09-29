@@ -1,20 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- ✅ ดึง base.css ที่มีพื้นหลัง -->
-  <link rel="stylesheet" href="/static/base.css">
 
-  <!-- ✅ ดึง styles-register.css สำหรับสไตล์ฟอร์ม -->
-  <link rel="stylesheet" href="/static/styles-register.css">
-  <!-- ✅ ดึง header.css สำหรับเมนู -->
-  <link rel="stylesheet" href="/static/header.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="/static/base.css" />
+  <link rel="stylesheet" href="/static/styles-register.css" />
+  <link rel="stylesheet" href="/static/header.css" />
 </head>
 
 <body>
+  <!-- Header -->
   {% include "header.html" %}
 
   <main class="container">
@@ -23,37 +22,40 @@
       <section class="panel">
         <h1>Sign up</h1>
 
-        <!-- ให้ฟอร์มมี id เพื่อให้ JS จับ event ได้ง่าย -->
-        <form id="register-form" action="/api/register" method="post">
-          <div class="field">
-            {% if error %}
-            <div class="error-box">
-              <p>{{ error }}</p>
-            </div>
-            {% endif %}
+        <form class="register-form" action="/api/register" method="post">
+          {% if error %}
+          <div class="error-box">
+            <p style="color:#ff3333; margin:8px 0">{{ error }}</p>
           </div>
+          {% endif %}
 
+          <!-- Full name -->
           <div class="field">
             <label>Full name</label>
             <input class="input" type="text" name="full_name" id="full_name" placeholder="Your full name" required
               value="{{ (old.full_name if old else '') }}" />
           </div>
 
+          <!-- Age -->
           <div class="field">
             <label>Age</label>
-            <input class="input" type="number" name="age" id="age" placeholder="e.g. 20+" required
+            <input class="input" type="number" name="age" id="age" placeholder="e.g. 20" required min="20" step="1"
               value="{{ (old.age if old else '') }}" />
           </div>
 
+          <!-- Phone -->
           <div class="field">
             <label>Phone number</label>
-            <input class="input" type="text" name="phone" id="phone" placeholder="0xxxxxxxxx" required
+            <input class="input" type="tel" name="phone" id="phone" placeholder="0xxxxxxxxx" required pattern="^0\d{9}$"
+              minlength="10" maxlength="10" inputmode="numeric" title="Phone must start with 0 and be exactly 10 digits"
               value="{{ (old.phone if old else '') }}" />
           </div>
 
+          <!-- Email -->
           <div class="field">
             <label>Email Address</label>
             <input class="input" type="email" name="email" id="email" placeholder="yourname@gmail.com" required
+              pattern=".+@gmail\.com" title="Email must end with @gmail.com" autocomplete="email"
               value="{{ (old.email if old else '') }}" />
           </div>
 
@@ -70,11 +72,13 @@
               <label>Confirm Password</label>
               <div class="password-wrap">
                 <input class="input" type="password" name="confirm_password" id="confirm_password" required />
-                <button type="button" class="eye" data-target="confirm_password" aria-label="Toggle confirm">👁️</button>
+                <button type="button" class="eye" data-target="confirm_password"
+                  aria-label="Toggle confirm">👁️</button>
               </div>
             </div>
           </div>
 
+          <!-- Agree to terms -->
           <p class="subtle" style="margin-top:12px">
             <label style="display:inline-flex;gap:8px;align-items:center;">
               <input type="checkbox" id="agree" name="agree" required {% if old and old.agree %}checked{% endif %} />
@@ -82,24 +86,61 @@
             </label>
           </p>
 
+          <!-- Submit -->
           <button class="btn" type="submit">Sign up</button>
         </form>
-
       </section>
-
 
       <!-- RIGHT: HERO TEXT -->
       <section class="hero-block">
         <h2 class="hero-title">JOIN FOR FREE</h2>
         <p class="hero-desc">
-          Investment comes with risks, but they are risks that create opportunities and value.<br>
-          <span class="red">High Risk, High Returns</span> start your journey with us today
+          Investment comes with risks, but they are risks that create opportunities and value.<br />
+          <span class="red">High Risk, High Returns</span> — start your journey with us today
         </p>
-
       </section>
     </div>
   </main>
+
+  <!-- Scripts -->
   <script>
+    // live confirm password check
+    const pw = document.getElementById('password');
+    const cpw = document.getElementById('confirm_password');
+    function checkMatch() {
+      cpw.setCustomValidity(cpw.value !== pw.value ? 'Passwords do not match' : '');
+    }
+    pw.addEventListener('input', checkMatch);
+    cpw.addEventListener('input', checkMatch);
+
+    // optional: custom messages for phone/email/age (frontend helper)
+    const emailEl = document.getElementById('email');
+    const phoneEl = document.getElementById('phone');
+    const ageEl = document.getElementById('age');
+
+    emailEl.addEventListener('input', () => {
+      if (!emailEl.value.endsWith('@gmail.com')) {
+        emailEl.setCustomValidity('Email must end with @gmail.com');
+      } else {
+        emailEl.setCustomValidity('');
+      }
+    });
+
+    phoneEl.addEventListener('input', () => {
+      if (!/^0\d{9}$/.test(phoneEl.value)) {
+        phoneEl.setCustomValidity('Phone must start with 0 and contain 10 digits');
+      } else {
+        phoneEl.setCustomValidity('');
+      }
+    });
+
+    ageEl.addEventListener('input', () => {
+      if (parseInt(ageEl.value) < 20) {
+        ageEl.setCustomValidity('Age must be at least 20');
+      } else {
+        ageEl.setCustomValidity('');
+      }
+    });
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('button.eye[data-target]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -112,38 +153,7 @@
         });
       });
     });
-
-    const emailEl = document.getElementById('email');
-    const phoneEl = document.getElementById('phone');
-    const ageEl = document.getElementById('age');
-
-    // Email must be @gmail.com
-    emailEl.addEventListener('input', () => {
-      emailEl.setCustomValidity('');
-      if (emailEl.validity.patternMismatch || emailEl.validity.typeMismatch) {
-        emailEl.setCustomValidity('Email must end with @gmail.com');
-      }
-    });
-
-    // Phone must start with 0 and be 10 digits
-    phoneEl.addEventListener('input', () => {
-      phoneEl.setCustomValidity('');
-      if (phoneEl.validity.patternMismatch) {
-        phoneEl.setCustomValidity('Phone number must start with 0 and contain 10 digits');
-      }
-    });
-
-    // Age must be at least 20
-    ageEl.addEventListener('input', () => {
-      ageEl.setCustomValidity('');
-      if (ageEl.validity.rangeUnderflow) {
-        ageEl.setCustomValidity('Age must be at least 20');
-      }
-    });
-
-
   </script>
-
 </body>
 
 </html>
