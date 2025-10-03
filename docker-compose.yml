@@ -1,40 +1,58 @@
-version: "3.9"
-
 services:
+  # PostgreSQL Database  
   db:
     image: postgres:16
-    container_name: acp_db
+    container_name: xbet_db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      POSTGRES_DB: ${POSTGRES_DB:-xbet_db}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-xbet_db}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
+  # Backend (FastAPI)
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: acp_backend
-    env_file: .env
+    container_name: xbet_backend
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-xbet_db}
+      - BACKEND_PORT=8000
+      - APP_NAME=1xBET Platform
+      - ADMIN_EMAIL=admin@xbet.com
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "8000:8000"
-    command: >
-      sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${BACKEND_PORT} --reload"
-    # ถ้าอยาก hot-reload โค้ดจากเครื่องให้เปิด volumes ด้านล่าง
-    # volumes:
-    #   - ./:/app
-    #   - ./app/static:/app/app/static
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: xbet_frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
 
 volumes:
   pgdata:

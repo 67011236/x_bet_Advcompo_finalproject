@@ -1,0 +1,179 @@
+/* ========= Auth shared styles (Login/Register) ========= */
+
+/* ตัวแปรที่ใช้ซ้ำ */
+:root{
+  --gap: 12px;
+  --radius: 14px;
+  --glass: rgba(255,255,255,0.08);
+  --glass-strong: rgba(0,0,0,0.45);
+  --white: #ffffff;
+}
+
+/* รีเซ็ตเบา ๆ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: 'Prompt', system-ui, Arial, sans-serif; color: var(--white); }
+
+/* พื้นหลังรวมของหน้า (เผื่อบาง route ไม่ใช้ layout หลัก) */
+.auth-bg {
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 700px at 65% 40%, rgba(0,90,255,.35), rgba(0,0,0,0)),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.0)),
+    url("/bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* โครง grid ตรงกลาง */
+.auth-layout{
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+/* กล่อง login/register (glass card) */
+.auth-card{
+  width: 100%;
+  max-width: 520px;
+  margin: 6vh auto 8vh;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: rgba(0,0,0,0.25);
+  box-shadow:
+    0 0 0 1px rgba(0,120,255,.08) inset,
+    0 18px 40px rgba(0,0,0,.28);
+  backdrop-filter: saturate(1.1) blur(4px);
+}
+
+/* หัวข้อ */
+.auth-title{
+  margin: 0 0 14px;
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 800;
+  letter-spacing: .4px;
+  color: #fff;
+}
+
+/* คำอธิบายสั้น ๆ */
+.auth-subtitle{
+  margin: -4px 0 18px;
+  color: rgba(255,255,255,.76);
+  font-size: 14px;
+}
+
+/* ช่องข้อมูล */
+.field{ margin: 0 0 12px; }
+
+.input{
+  width: 100%;
+  height: 46px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  border-radius: 10px;
+  outline: none;
+}
+
+.input::placeholder{ color: rgba(255,255,255,.55); }
+
+/* input + ปุ่มโชว์รหัส */
+.input-with-eye{
+  position: relative;
+}
+
+.input-with-eye .input{
+  padding-right: 42px; /* เว้นที่ให้ปุ่มตา */
+}
+
+.eye-btn{
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  height: 28px;
+  min-width: 28px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  opacity: .9;
+  cursor: pointer;
+}
+
+.eye-btn:hover{ opacity: 1; }
+
+/* ปุ่มหลัก */
+.btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 10px;
+  background: rgb(0,153,255);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: .2px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,140,255,.25);
+}
+
+.btn:hover{ filter: brightness(1.04); }
+
+/* ลิงก์ย่อย */
+.link{
+  color: #a0d2ff;
+  text-decoration: none;
+}
+.link:hover{ text-decoration: underline; }
+
+/* error */
+.form-error{
+  color: #ff6b6b;
+  margin: 6px 0 2px;
+}
+
+/* ส่วน “ยินดีต้อนรับ” ด้านข้าง */
+.welcome{
+  display: grid;
+  place-content: center;
+  min-height: 160px;
+  padding-right: 0;
+  color: #fff;
+  gap: 12px;
+}
+
+.welcome .headline{
+  margin: 0;
+  font-size: clamp(24px, 2.6vw, 36px);
+  font-weight: 800;
+  letter-spacing: .4px;
+}
+
+.welcome .lead{
+  margin: 0;
+  color: rgba(255,255,255,.85);
+}
+
+/* responsive */
+@media (min-width: 1200px){
+  .auth-layout{
+    grid-template-columns: 520px 1fr; /* card | welcome */
+    gap: 36px;
+  }
+  .auth-card{ margin: 12vh 0; }
+}
+
+@media (max-width: 420px){
+  .auth-card{ padding: 18px; }
+  .btn{ height: 44px; }
+}

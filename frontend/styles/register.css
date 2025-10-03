@@ -1,0 +1,286 @@
+/* ---------- ค่าพื้นฐานที่ใช้ร่วม ---------- */
+:root{
+  --card: rgba(7, 12, 26, .86);
+  --input: #e9eef4;
+  --accent: #2f6dff;
+  --text: #ffffff;
+  --red: #E32020;
+}
+
+/* อย่าเซ็ต background/overflow บน html,body ในไฟล์นี้ */
+html, body { 
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---------- Layout (กลางจอ) ---------- */
+.container{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  height: calc(100vh - var(--header-h));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid{
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  gap: 80px;
+  align-items: start; /* panel อยู่ด้านบน */
+  justify-items: center; /* ทุกอย่างอยู่กึ่งกลางแนวนอน */
+  width: 100%;
+  height: 100%;
+  padding-top: 80px; /* เพิ่ม padding ด้านบนเพื่อให้มีพื้นที่ */
+}
+
+/* ---------- กล่องสมัคร (ซ้าย) ---------- */
+.panel{
+  background: var(--card);
+  backdrop-filter: blur(6px);
+  border-radius: 18px;
+  padding: 32px 28px 28px;
+  box-shadow: none; /* เอาเงาออก */
+  color: var(--text);
+  margin: 0 auto;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* เปลี่ยนจาก center เป็น flex-start */
+  align-self: flex-start; /* เลื่อนกล่องขึ้นไปด้านบน */
+  margin-top: -60px; /* เลื่อนขึ้นมาเพิ่มเติม */
+}
+
+.panel h1, .panel h2{
+  margin: 0 0 18px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label{
+  display: block;
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #eaf1ff;
+  opacity: .95;
+}
+
+.field .input,
+.panel input[type="text"],
+.panel input[type="email"],
+.panel input[type="password"],
+.panel input[type="number"],
+.panel input[type="tel"]{
+  width: 100%;
+  display: block;
+  margin: 0 0 8px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--input);
+  color: #111;
+  font-size: 14px;
+  outline: 2px solid transparent;
+  transition: outline-color .15s ease, box-shadow .15s ease;
+}
+
+.panel input:focus{
+  outline-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47,109,255,.18);
+}
+
+/* แถวพาสเวิร์ด 2 คอลัมน์ให้กว้างเท่ากัน */
+.row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 0;
+}
+.col{ 
+  min-width: 0; 
+}
+
+.row .field {
+  margin-bottom: 8px; /* ลดระยะห่างเพื่อให้ checkbox ชิดขึ้น */
+}
+
+/* ปุ่ม submit */
+.btn{
+  width: 100%;
+  display: block;
+  margin: 8px 0 10px; /* ลด margin-top จาก 16px เป็น 8px */
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(47,109,255,.28);
+  transition: filter .15s ease;
+}
+
+.btn:hover{ 
+  filter: brightness(1.06); 
+}
+
+.btn:disabled{ 
+  opacity: .6; 
+  cursor: not-allowed; 
+}
+
+/* ข้อความเล็กใต้ปุ่ม */
+.subtle{ 
+  font-size: 13px; 
+  color: #b7c4d4;
+  margin: 0; /* เอา margin ออกเพื่อให้ชิดกับ password fields */
+}
+
+.subtle a {
+  color: #b7c4d4;
+  text-decoration: none;
+}
+
+.subtle a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- ข้อความโปรโมท (ขวา) ---------- */
+.hero-block{
+  align-self: center; /* กึ่งกลางแนวตั้ง */
+  justify-self: center; /* กึ่งกลางแนวนอน */
+  margin: 0;
+  padding: 0;
+  text-align: left; /* เปลี่ยนกลับเป็น left สำหรับข้อความยาว */
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start; /* จัดให้เริ่มต้นจากซ้าย */
+  height: auto;
+}
+
+.hero-title{
+  margin: 0 0 20px;
+  font-size: clamp(48px, 5vw, 72px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--text);
+  line-height: 1.1;
+  white-space: nowrap; /* ป้องกันไม่ให้ตัดบรรทัด */
+  text-align: center; /* จัดกึ่งกลาง */
+}
+
+.hero-desc{
+  margin-top: 16px;
+  max-width: 480px;
+  line-height: 1.7;
+  color: #ffffff;
+  font-size: 16px;
+  text-align: left; /* เปลี่ยนกลับเป็น left */
+  align-self: flex-start; /* ให้เริ่มต้นจากซ้ายเหมือน title */
+}
+
+.hero-desc .red{ 
+  color: var(--red); 
+  font-weight: 800; 
+}
+
+.red {
+  color: #ff3b3b;
+  font-weight: 800;
+}
+
+/* password toggle */
+.password-wrap { 
+  position: relative; 
+}
+
+.password-wrap input { 
+  padding-right: 42px; 
+}
+
+.eye{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: .85;
+  filter: grayscale(100%);
+}
+
+.eye:hover{ 
+  opacity: 1; 
+}
+
+/* Error message */
+.error-box {
+  background-color: #ffe6e6;
+  border: 1px solid #ff4d4d;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #cc0000;
+  font-size: 14px;
+}
+
+.form-error {
+  color: #ff6b6b;
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+/* Checkbox styling */
+.checkbox-wrapper {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 0; /* เลื่อนขึ้นมาติดกับ password */
+  margin-bottom: 8px; /* ลดระยะห่างกับปุ่มจาก 12px เป็น 8px */
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  margin: 0;
+  width: auto;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px){
+  html, body { 
+    overflow: auto; 
+  }
+  .container { 
+    height: auto; 
+    padding: 24px 18px; 
+  }
+  .grid{ 
+    grid-template-columns: 1fr; 
+    gap: 40px; 
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .hero-block {
+    padding-left: 0;
+    text-align: center;
+  }
+  .hero-title{ 
+    font-size: clamp(32px, 7vw, 48px);
+    white-space: nowrap; /* ป้องกันไม่ให้ตัดบรรทัดในมือถือด้วย */
+  }
+  .panel {
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,225 @@
+/* ===== Balance Page Styles ===== */
+:root {
+  --balance-card: rgba(7, 12, 26, .86);
+  --balance-input: #e9eef4;
+  --balance-accent: #2f6dff;
+  --balance-text: #ffffff;
+  --balance-warning: #1a8cff;
+}
+
+/* Page Container */
+.balance-page {
+  min-height: 100vh;
+  padding-top: var(--header-h);
+  overflow: hidden; /* ป้องกันการ scroll */
+}
+
+.balance-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px; /* เอากลับมาเป็นแบบเดิม */
+  height: calc(100vh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Section */
+.balance-header {
+  background: rgba(7, 12, 26, .9);
+  border-radius: 12px 12px 0 0;
+  padding: 15px 25px;
+  margin-bottom: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.balance-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--balance-text);
+}
+
+/* Balance Display Card */
+.balance-display {
+  background: var(--balance-card);
+  border-radius: 0 0 18px 18px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 10px; /* ลดระยะห่างให้กล่องขึ้นมา */
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.balance-display h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--balance-text);
+}
+
+.balance-amount {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--balance-text);
+  margin: 5px 0;
+}
+
+.balance-status {
+  color: #b7c4d4;
+  font-size: 14px;
+  margin: 5px 0 0;
+}
+
+/* Action Cards Grid */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  flex: 1;
+}
+
+.action-card {
+  background: var(--balance-card);
+  border-radius: 18px;
+  padding: 25px;
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.action-card h3 {
+  margin: 0 0 15px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--balance-text);
+}
+
+/* Warning Banner */
+.warning-banner {
+  background: var(--balance-warning);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #fff;
+  text-align: center;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #eaf1ff;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--balance-input);
+  color: #111;
+  font-size: 14px;
+  outline: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+  box-shadow: 0 0 0 3px rgba(47,109,255,.18);
+}
+
+/* Fee Display */
+.fee-display {
+  margin: 10px 0;
+  font-size: 13px;
+  color: #b7c4d4;
+}
+
+/* Action Button */
+.action-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #6c757d;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-bottom: 12px;
+}
+
+.action-btn:hover {
+  background: #5a6268;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Checkbox */
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-top: 2px;
+  width: auto;
+}
+
+.checkbox-group label {
+  font-size: 12px;
+  color: #b7c4d4;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.checkbox-group a {
+  color: #b7c4d4; /* เปลี่ยนเป็นสีเดียวกับข้อความปกติ */
+  text-decoration: none;
+  pointer-events: none; /* ทำให้กดไม่ได้ */
+  cursor: default; /* เปลี่ยน cursor เป็นแบบปกติ */
+}
+
+.checkbox-group a:hover {
+  text-decoration: none; /* ไม่ให้ underline เมื่อ hover */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .action-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .balance-display {
+    padding: 25px;
+  }
+  
+  .balance-amount {
+    font-size: 36px;
+  }
+  
+  .action-card {
+    padding: 20px;
+  }
+  
+  .balance-container {
+    padding: 20px 15px;
+  }
+}

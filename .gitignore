@@ -1,0 +1,39 @@
+# Virtual environments
+backend/.venv/
+backend/venv/
+frontend/node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+*.db
+*.sqlite3
+
+# Environment files
+.env.local
+.env.development
+.env.production
+
+# Build outputs
+frontend/.next/
+frontend/out/
+backend/dist/
+backend/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

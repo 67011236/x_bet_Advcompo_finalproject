@@ -1,0 +1,219 @@
+/* ===== Base ===== */
+* { box-sizing: border-box }
+html, body { 
+  height: 100vh; 
+  margin: 0;
+  overflow: hidden; /* ปิดการเลื่อน */
+}
+:root{
+  --glass: rgba(0, 10, 30, .72);
+  --glass-stroke: rgba(255,255,255,.12);
+  --text: #ffffff;
+  --muted: #cfe6ff;
+  --accent: #71ddff;
+}
+
+body{
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji";
+  /* พื้นหลัง: ใส่รูปของคุณไว้ /bg.jpg */
+  background:
+    radial-gradient(1200px 700px at 65% 40%, rgba(0,90,255,.35), rgba(0,0,0,.0) 60%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)),
+    url("/bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* กรอบภาพรวม */
+.page{
+  height: 100vh;
+  overflow: hidden;
+  padding: 28px;
+}
+
+/* ===== Layout ===== */
+.container{
+  height: calc(100vh - 130px);
+  display: grid; 
+  grid-template-columns: 520px 1fr;
+  align-items: center; 
+  justify-items: center; /* จัดกึ่งกลางแนวนอน */
+  gap: 48px;
+  padding: 20px 40px 60px 40px;
+  overflow: hidden;
+}
+
+/* ===== Login Card ===== */
+.login-box{
+  width: 520px; 
+  max-width: 95%;
+  background: var(--glass);
+  border: 1px solid var(--glass-stroke);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: none; /* เอาเงาออก */
+  backdrop-filter: blur(4px);
+  margin: 0 auto; /* จัดกึ่งกลางแนวนอน */
+}
+
+.login-box h2{ 
+  margin: 0 0 14px 0; 
+  font-size: 28px; 
+  font-weight: 800;
+}
+
+.field {
+  margin: 12px 0;
+}
+
+.field label{ 
+  display: block; 
+  margin: 12px 0 6px; 
+  font-size: 13px; 
+  color: #d9e6ff; 
+  opacity: .95;
+}
+
+.field input{
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 15px;
+  color: #111;
+  background: #eef3ff;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+}
+
+.field input:focus{ 
+  box-shadow: 0 0 0 2px #86c7ff inset;
+}
+
+/* Password field with eye icon */
+.input-with-eye{ 
+  position: relative;
+}
+
+.input-with-eye input{ 
+  padding-right: 42px;
+}
+
+.eye-btn{
+  position: absolute; 
+  right: 10px; 
+  top: 50%; 
+  transform: translateY(-50%);
+  width: 28px; 
+  height: 28px; 
+  border: none; 
+  border-radius: 50%;
+  background: rgba(255,255,255,.9); 
+  cursor: pointer;
+  font-size: 14px;
+  filter: grayscale(100%);
+}
+
+.eye-btn:hover{ 
+  opacity: 1;
+}
+
+.btn{
+  width: 100%; 
+  height: 44px; 
+  margin-top: 16px;
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer;
+  background: #ffffff; 
+  color: #0a1220; 
+  font-weight: 800;
+}
+
+.btn:hover{ 
+  filter: brightness(.95);
+}
+
+.meta{ 
+  margin: 12px 0 0 0; 
+  font-size: 13px; 
+  color: #d4e9ff;
+}
+
+.link{ 
+  color: #71ddff; 
+  text-decoration: none;
+}
+
+.link:hover{ 
+  text-decoration: underline;
+}
+
+.form-error {
+  color: #ff6b6b;
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+/* ===== Right Welcome ===== */
+.welcome{ 
+  text-align: center; /* จัดกึ่งกลาง */
+  padding-right: 0; /* เอา padding ออก */
+  align-self: center; /* จัดกึ่งกลางแนวตั้ง */
+  justify-self: center; /* จัดกึ่งกลางแนวนอน */
+}
+
+.welcome h1{ 
+  margin: 0; 
+  font-size: clamp(30px, 4.2vw, 64px); 
+  font-weight: 900;
+}
+
+.welcome p{ 
+  margin-top: 12px; 
+  font-size: clamp(14px, 1.3vw, 18px); 
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 1200px){
+  .container{ 
+    grid-template-columns: 520px 1fr; 
+    gap: 36px;
+  }
+}
+
+@media (max-width: 980px){
+  .container{ 
+    grid-template-columns: 1fr; 
+    gap: 24px;
+    justify-items: center; /* จัดกึ่งกลางในมือถือด้วย */
+  }
+  .welcome{ 
+    text-align: center; /* จัดกึ่งกลางในมือถือ */
+    padding-right: 0;
+  }
+  .login-box{ 
+    width: 100%;
+  }
+}
+
+/* Fixed background for smooth experience */
+html, body{
+  height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.wrap{
+  min-height: 100vh;
+  padding: 72px 24px 24px;
+}
+
+.grid{
+  min-height: calc(100vh - 96px);
+  display: grid;
+  grid-template-columns: 560px 1fr;
+  column-gap: 72px;
+  align-items: center;
+}
