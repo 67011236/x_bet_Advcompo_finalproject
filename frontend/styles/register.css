@@ -28,11 +28,10 @@ html, body {
   display: grid;
   grid-template-columns: 520px 1fr;
   gap: 80px;
-  align-items: start; /* panel อยู่ด้านบน */
+  align-items: center; /* เปลี่ยนเป็น center เพื่อให้อยู่กึ่งกลางแนวตั้ง */
   justify-items: center; /* ทุกอย่างอยู่กึ่งกลางแนวนอน */
   width: 100%;
   height: 100%;
-  padding-top: 80px; /* เพิ่ม padding ด้านบนเพื่อให้มีพื้นที่ */
 }
 
 /* ---------- กล่องสมัคร (ซ้าย) ---------- */
@@ -40,7 +39,7 @@ html, body {
   background: var(--card);
   backdrop-filter: blur(6px);
   border-radius: 18px;
-  padding: 32px 28px 28px;
+  padding: 24px 28px 24px;
   box-shadow: none; /* เอาเงาออก */
   color: var(--text);
   margin: 0 auto;
@@ -48,9 +47,9 @@ html, body {
   max-width: 520px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* เปลี่ยนจาก center เป็น flex-start */
-  align-self: flex-start; /* เลื่อนกล่องขึ้นไปด้านบน */
-  margin-top: -60px; /* เลื่อนขึ้นมาเพิ่มเติม */
+  justify-content: center; /* เปลี่ยนกลับเป็น center */
+  align-self: center; /* อยู่กึ่งกลางแนวตั้ง */
+  transform: translateY(-20px); /* เลื่อนลงมาจาก -40px เป็น -20px */
 }
 
 .panel h1, .panel h2{
@@ -65,7 +64,7 @@ html, body {
 
 .field label{
   display: block;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 13px;
   color: #eaf1ff;
   opacity: .95;
@@ -100,14 +99,15 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin: 0;
+  margin-top: 16px;
+  margin-bottom: 16px;
 }
 .col{ 
   min-width: 0; 
 }
 
 .row .field {
-  margin-bottom: 8px; /* ลดระยะห่างเพื่อให้ checkbox ชิดขึ้น */
+  margin-bottom: 0; /* ลบ margin-bottom เพื่อให้ .row จัดการ spacing */
 }
 
 /* ปุ่ม submit */
@@ -227,14 +227,19 @@ html, body {
 
 /* Error message */
 .error-box {
-  background-color: #ffe6e6;
-  border: 1px solid #ff4d4d;
-  padding: 10px;
+  width: 100%;
+  display: block;
+  margin: 0 0 8px;
+  padding: 2px 3px;
   border-radius: 6px;
-  margin-bottom: 15px;
+  border: none;
+  background-color: #E32020;
+  color: #ffffff;
+  font-size: 16px;
   text-align: center;
-  color: #cc0000;
-  font-size: 14px;
+  outline: 2px solid transparent;
+  transition: outline-color .15s ease, box-shadow .15s ease;
+  box-sizing: border-box;
 }
 
 .form-error {
@@ -248,7 +253,7 @@ html, body {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  margin-top: 0; /* เลื่อนขึ้นมาติดกับ password */
+  margin-top: -8px; /* เลื่อนขึ้นมาติดกับ password มากขึ้น */
   margin-bottom: 8px; /* ลดระยะห่างกับปุ่มจาก 12px เป็น 8px */
 }
 

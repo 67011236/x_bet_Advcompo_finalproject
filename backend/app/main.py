@@ -144,6 +144,11 @@ async def register(payload: RegisterPayload, db: Session = Depends(get_db)):
     existed = db.query(User).filter(func.lower(User.email) == email_norm).first()
     if existed:
         return JSONResponse({"error": "Email already exists"}, status_code=400)
+    
+    # ตรวจสอบ phone ซ้ำ
+    existed_phone = db.query(User).filter(User.phone == payload.phone).first()
+    if existed_phone:
+        return JSONResponse({"error": "Phone number already exists"}, status_code=400)
 
     user = User(
         full_name=payload.full_name,

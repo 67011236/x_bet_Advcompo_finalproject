@@ -141,7 +141,7 @@ export default function RegisterPage() {
 
             <form className="register-form" onSubmit={handleSubmit}>
               {error && (
-                <div className="error-box">
+                <div className="error-box input">
                   <p>{error}</p>
                 </div>
               )}
