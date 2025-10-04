@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import SiteHeader from "../../components/SiteHeader";
+import LoginHeader from "../../components/LoginHeader";
 import "../../styles/register.css";
 
 export default function RegisterPage() {
@@ -130,7 +130,7 @@ export default function RegisterPage() {
   return (
     <div className="page">
       {/* Header */}
-      <SiteHeader />
+      <LoginHeader />
 
       {/* Main Content */}
       <main className="container">

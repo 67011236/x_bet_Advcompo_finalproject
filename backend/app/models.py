@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
-    create_engine, Column, Integer, String, DateTime,
+    create_engine, Column, Integer, String, DateTime, Numeric, ForeignKey,
     CheckConstraint, func
 )
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import OperationalError
 
 from pydantic import BaseModel, EmailStr, validator
@@ -63,6 +63,22 @@ class User(Base):
     bcrypt = bcrypt
 
 # ===============================
+# Details ORM model (Balance table)
+# ===============================
+class Details(Base):
+    __tablename__ = "details"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    balance = Column(Numeric(15, 2), nullable=False, default=0.00)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        CheckConstraint("balance >= 0", name="balance_non_negative"),
+    )
+
+# ===============================
 # Create DB
 # ===============================
 def create_db():
@@ -116,7 +132,7 @@ class RegisterPayload(BaseModel):
 # ===============================
 # Ensure Admin user
 # ===============================
-def ensure_admin(session: SessionLocal):
+def ensure_admin(session):
     admin_email = os.getenv("ADMIN_EMAIL", "admin@xbet.com").lower()
     admin_phone = "0000000000"
     
@@ -137,7 +153,45 @@ def ensure_admin(session: SessionLocal):
         )
         session.add(admin)
         session.commit()
+        
+        # สร้าง Details (Balance) สำหรับ Admin
+        admin_details = Details(
+            user_id=admin.id,
+            balance=1000000.00  # ให้ Admin มี balance เริ่มต้น 1,000,000
+        )
+        session.add(admin_details)
+        session.commit()
         print(f"✅ Admin user created: {admin_email}")
+    
+    # เพิ่ม test user ธรรมดา
+    test_email = "user@test.com"
+    test_phone = "0811111111"
+    
+    existing_user = session.query(User).filter(
+        (func.lower(User.email) == test_email) | 
+        (User.phone == test_phone)
+    ).first()
+    
+    if not existing_user:
+        test_user = User(
+            full_name="Test User",
+            age=25,
+            phone=test_phone,
+            email=test_email,
+            password_hash=bcrypt.hash("123456"),
+            role="user",
+        )
+        session.add(test_user)
+        session.commit()
+        
+        # สร้าง Details (Balance) สำหรับ Test User
+        user_details = Details(
+            user_id=test_user.id,
+            balance=0.00  # ให้ Test User มี balance เริ่มต้น 0.00
+        )
+        session.add(user_details)
+        session.commit()
+        print(f"✅ Test user created: {test_email}")
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",

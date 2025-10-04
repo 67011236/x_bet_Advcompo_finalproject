@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import SiteHeader from "../../components/SiteHeader";
+import { useRouter } from "next/navigation";
+import LoginHeader from "../../components/LoginHeader";
 import "../../styles/login.css";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,6 +27,8 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
+    console.log("Submitting login with data:", formData);
+
     try {
       const response = await fetch("http://localhost:8000/login", {
         method: "POST",
@@ -35,15 +39,29 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
       const data = await response.json();
+      console.log("Response data:", data);
 
       if (response.ok) {
-        // Redirect to dashboard or home page
-        window.location.href = "/";
+        console.log("Login successful, redirecting to /balance");
+        // Add a small delay before redirect
+        setTimeout(() => {
+          try {
+            router.push("/balance");
+          } catch (routerError) {
+            console.log("Router failed, using window.location");
+            window.location.replace("/balance");
+          }
+        }, 100);
       } else {
+        console.log("Login failed with error:", data.error);
         setError(data.error || "Login failed");
       }
     } catch (err) {
+      console.error("Network error:", err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -57,7 +75,7 @@ export default function LoginPage() {
   return (
     <div className="page">
       {/* Header */}
-      <SiteHeader />
+      <LoginHeader />
 
       {/* Main Content */}
       <main className="container">
