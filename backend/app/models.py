@@ -5,7 +5,7 @@ from typing import Optional
 
 from sqlalchemy import (
     create_engine, Column, Integer, String, DateTime, Numeric, ForeignKey,
-    CheckConstraint, func
+    CheckConstraint, func, Text
 )
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import OperationalError
@@ -63,10 +63,10 @@ class User(Base):
     bcrypt = bcrypt
 
 # ===============================
-# Details ORM model (Balance table)
+# Credit ORM model (Balance table)
 # ===============================
-class Details(Base):
-    __tablename__ = "details"
+class Credit(Base):
+    __tablename__ = "credit"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
@@ -76,6 +76,29 @@ class Details(Base):
 
     __table_args__ = (
         CheckConstraint("balance >= 0", name="balance_non_negative"),
+    )
+
+# ===============================
+# Reports ORM model (Report submissions)
+# ===============================
+class Report(Base):
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    category = Column(String(50), nullable=False)
+    description = Column(Text, nullable=False)  # Using Text for long descriptions
+    status = Column(String(20), nullable=False, default="pending")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship
+    user = relationship("User", backref="reports")
+
+    __table_args__ = (
+        CheckConstraint("category IN ('technical','payment','account','betting','suggestion','other')", name="category_allowed"),
+        CheckConstraint("status IN ('pending','reviewing','resolved','closed')", name="status_allowed"),
     )
 
 # ===============================
@@ -154,12 +177,12 @@ def ensure_admin(session):
         session.add(admin)
         session.commit()
         
-        # สร้าง Details (Balance) สำหรับ Admin
-        admin_details = Details(
+        # สร้าง Credit (Balance) สำหรับ Admin
+        admin_credit = Credit(
             user_id=admin.id,
             balance=1000000.00  # ให้ Admin มี balance เริ่มต้น 1,000,000
         )
-        session.add(admin_details)
+        session.add(admin_credit)
         session.commit()
         print(f"✅ Admin user created: {admin_email}")
     
@@ -184,12 +207,12 @@ def ensure_admin(session):
         session.add(test_user)
         session.commit()
         
-        # สร้าง Details (Balance) สำหรับ Test User
-        user_details = Details(
+        # สร้าง Credit (Balance) สำหรับ Test User
+        user_credit = Credit(
             user_id=test_user.id,
             balance=0.00  # ให้ Test User มี balance เริ่มต้น 0.00
         )
-        session.add(user_details)
+        session.add(user_credit)
         session.commit()
         print(f"✅ Test user created: {test_email}")
 

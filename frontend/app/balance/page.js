@@ -16,6 +16,32 @@ export default function BalancePage() {
   const currency = "THB";
   const fee = "0.00";
 
+  // Mouse tracking wave effect
+  const handleMouseMove = (event) => {
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    // Update CSS custom properties for the wave position (เป็น percentage)
+    button.style.setProperty('--mouse-x', `${x}%`);
+    button.style.setProperty('--mouse-y', `${y}%`);
+  };
+
+  const handleMouseEnter = (event) => {
+    const button = event.currentTarget;
+    // เพิ่ม class สำหรับ active wave state
+    button.classList.add('wave-active');
+  };
+
+  const handleMouseLeave = (event) => {
+    const button = event.currentTarget;
+    // Reset position to center when mouse leaves
+    button.style.setProperty('--mouse-x', '50%');
+    button.style.setProperty('--mouse-y', '50%');
+    button.classList.remove('wave-active');
+  };
+
   // Fetch balance when component mounts
   useEffect(() => {
     fetchBalance();
@@ -187,6 +213,9 @@ export default function BalancePage() {
                 type="submit" 
                 className="action-btn"
                 disabled={loading || !withdrawAmount || !withdrawAgree}
+                onMouseMove={handleMouseMove}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
                 {loading ? "Processing..." : "Confirm"}
               </button>
@@ -238,6 +267,9 @@ export default function BalancePage() {
                 type="submit" 
                 className="action-btn"
                 disabled={loading || !depositAmount || !depositAgree}
+                onMouseMove={handleMouseMove}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
                 {loading ? "Processing..." : "Confirm"}
               </button>

@@ -50,6 +50,17 @@
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.balance-display:hover {
+  transform: translateY(-6px);
+  box-shadow: 
+    0 18px 35px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .balance-display h2 {
@@ -89,6 +100,17 @@
   flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.action-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .action-card h3 {
@@ -125,17 +147,22 @@
 .form-input {
   width: 100%;
   padding: 12px 14px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   background: var(--balance-input);
   color: #111;
   font-size: 14px;
   outline: none;
-  transition: box-shadow 0.2s ease;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
-  box-shadow: 0 0 0 3px rgba(47,109,255,.18);
+  outline: none;
+  border-color: #71ddff; /* สีฟ้าเหมือนหน้า reports */
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(113, 221, 255, 0.2);
+  transform: scale(1.02);
 }
 
 /* Fee Display */
@@ -145,28 +172,176 @@
   color: #b7c4d4;
 }
 
-/* Action Button */
+/* Action Button - เหมือนปุ่ม Submit ในหน้า reports */
 .action-btn {
   width: 100%;
-  padding: 12px 16px;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #71ddff 0%, #0090ff 100%);
+  color: white;
   border: none;
-  border-radius: 6px;
-  background: #6c757d;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
+  text-transform: lowercase;
+  letter-spacing: 2px;
+  box-shadow: 
+    0 4px 15px rgba(113, 221, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: visible;
   margin-bottom: 12px;
 }
 
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 60% 15%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.2) 2.5px, transparent 3.5px),
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.3) 1px, transparent 2px),
+    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.5) 2px, transparent 3px),
+    radial-gradient(circle at 15% 60%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 85% 50%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 45% 90%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+    radial-gradient(circle at 25% 10%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.3) 2px, transparent 3px);
+  border-radius: 15px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* คลื่นกระจายออกจากเมาส์ */
+.action-btn::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  left: var(--mouse-x, 50%);
+  top: var(--mouse-y, 50%);
+  transform: translate(-50%, -50%);
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 2px),
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.5) 1px, transparent 2px),
+    radial-gradient(circle at 20% 70%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+    radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.5) 1px, transparent 2px),
+    radial-gradient(circle at 10% 40%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.3) 1px, transparent 2px),
+    radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.5) 2px, transparent 3px),
+    radial-gradient(circle at 25% 75%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+    radial-gradient(circle at 55% 35%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 35% 55%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
 .action-btn:hover {
-  background: #5a6268;
+  background: linear-gradient(135deg, #0090ff 0%, #0070cc 100%);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 8px 25px rgba(113, 221, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.action-btn:hover::before {
+  opacity: 1;
+  animation: sparkle-dots 3s ease-in-out infinite;
+}
+
+.action-btn:hover::after {
+  opacity: 1;
+  animation: mouse-dots-spread 2s ease-out infinite;
+}
+
+.action-btn.wave-active::before {
+  opacity: 1;
+  animation: sparkle-dots 2.5s ease-in-out infinite;
+}
+
+.action-btn.wave-active::after {
+  opacity: 1;
+  animation: mouse-dots-spread 1.8s ease-out infinite;
+}
+
+/* แอนิเมชั่นจุดสีกระจายตามเมาส์ */
+@keyframes mouse-dots-spread {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.9;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.7;
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.5;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0.3;
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* แอนิเมชั่นจุดสีพื้นหลัง */
+@keyframes sparkle-dots {
+  0% {
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  75% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.action-btn:active {
+  transform: translateY(-1px);
 }
 
 .action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: 
+    0 4px 15px rgba(113, 221, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.action-btn:disabled::after {
+  display: none;
 }
 
 /* Checkbox */

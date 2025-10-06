@@ -137,7 +137,7 @@ export default function LoginPage() {
         {/* WELCOME TEXT */}
         <section className="welcome">
           <h1>WELCOME BACK</h1>
-          <p>Your first step to investing start here - log in</p>
+          <p>Your first step to investing start here - <span className="red-text">log in</span></p>
         </section>
       </main>
     </div>
