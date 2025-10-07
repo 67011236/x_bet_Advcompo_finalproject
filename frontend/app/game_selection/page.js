@@ -1,6 +1,7 @@
 "use client";
 import Protected from "../../components/Protected";
 import AuthenticatedHeader from "../../components/AuthenticatedHeader";
+import Link from "next/link";
 import "../../styles/game-selection.css";
 
 export default function GameSelection() {
@@ -57,14 +58,16 @@ export default function GameSelection() {
                   <li>Fast, concise, transparent — Blue pays 2x, White loses stake</li>
                 </ul>
               </div>
-              <button 
-                className="game-btn"
-                onMouseMove={handleMouseMove}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                Spin in style
-              </button>
+              <Link href="/game1">
+                <button 
+                  className="game-btn"
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  Spin in style
+                </button>
+              </Link>
             </div>
 
             {/* Rock-Paper-Scissors Card */}
@@ -78,14 +81,16 @@ export default function GameSelection() {
                   <li>Rapid duel mode - Easy on the eyes</li>
                 </ul>
               </div>
-              <button 
-                className="game-btn"
-                onMouseMove={handleMouseMove}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                Duel Now
-              </button>
+              <Link href="/game2">
+                <button 
+                  className="game-btn"
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  Duel Now
+                </button>
+              </Link>
             </div>
           </div>
         </div>

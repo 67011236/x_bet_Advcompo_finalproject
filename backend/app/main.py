@@ -347,3 +347,29 @@ async def withdraw(payload: WithdrawPayload, request: Request, db: Session = Dep
         "new_balance": new_balance,
         "withdrawn_amount": payload.amount
     }
+
+# ===============================
+# Dashboard Statistics API
+# ===============================
+@app.get("/api/dashboard-stats")
+async def get_dashboard_stats(request: Request, db: Session = Depends(get_db)):
+    """
+    Get dashboard statistics: total users and total reports
+    """
+    must_admin(request)  # Only admin can access dashboard stats
+    
+    try:
+        # Count total users
+        total_users = db.query(User).count()
+        
+        # Count total reports
+        total_reports = db.query(Report).count()
+        
+        return {
+            "total_users": total_users,
+            "total_reports": total_reports,
+            "status": "success"
+        }
+    except Exception as e:
+        print(f"❌ Error fetching dashboard stats: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
