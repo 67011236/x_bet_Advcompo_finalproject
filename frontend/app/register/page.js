@@ -77,6 +77,16 @@ export default function RegisterPage() {
     setValidationErrors(errors);
   };
 
+  // Function to check if form is valid
+  const isFormValid = () => {
+    const requiredFields = ['full_name', 'age', 'phone', 'email', 'password', 'confirm_password'];
+    const allFieldsFilled = requiredFields.every(field => formData[field].trim() !== '');
+    const noValidationErrors = Object.keys(validationErrors).length === 0;
+    const agreeChecked = formData.agree;
+    
+    return allFieldsFilled && noValidationErrors && agreeChecked;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -285,7 +295,7 @@ export default function RegisterPage() {
               </p>
 
               {/* Submit */}
-              <button className="btn" type="submit" disabled={loading}>
+              <button className="btn" type="submit" disabled={loading || !isFormValid()}>
                 {loading ? "Signing up..." : "Sign up"}
               </button>
 

@@ -50,6 +50,16 @@ html, body {
   justify-content: center; /* เปลี่ยนกลับเป็น center */
   align-self: center; /* อยู่กึ่งกลางแนวตั้ง */
   transform: translateY(-20px); /* เลื่อนลงมาจาก -40px เป็น -20px */
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.panel:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(71, 221, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .panel h1, .panel h2{

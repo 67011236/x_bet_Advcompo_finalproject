@@ -1,0 +1,547 @@
+/* Report Page Styles - Consistent background with login page */
+.report-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 700px at 65% 40%, rgba(0,90,255,.35), rgba(0,0,0,.0) 60%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)),
+    url("/bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+  color: white;
+}
+
+/* Background Effects - Subtle overlay effects */
+.bg-effects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.light-effect {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: floating 10s ease-in-out infinite;
+}
+
+.light-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(113, 221, 255, 0.2) 0%, transparent 70%);
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.light-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(113, 221, 255, 0.15) 0%, transparent 70%);
+  top: 60%;
+  right: 15%;
+  animation-delay: 4s;
+}
+
+.light-3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(113, 221, 255, 0.25) 0%, transparent 70%);
+  bottom: 30%;
+  left: 30%;
+  animation-delay: 8s;
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+/* Container */
+.report-container {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem 2rem 2rem 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 2rem;
+}
+
+/* Header */
+.report-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.report-header h1 {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  background: rgba(0, 10, 30, 0.8);
+  padding: 1.5rem 3rem;
+  border-radius: 50px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-header h1::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(71, 221, 255, 0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Report Card */
+.report-card {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(0, 10, 30, 0.72);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  border: 1px solid rgba(71, 221, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(71, 221, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.report-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(71, 221, 255, 0.1) 0%, transparent 50%, rgba(71, 221, 255, 0.05) 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.report-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(71, 221, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.report-card:hover::before {
+  opacity: 1;
+}
+
+.report-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(71, 221, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.report-card:hover::before {
+  opacity: 1;
+}
+
+.report-card {
+  margin-bottom: 2rem;
+}
+
+/* Card Header */
+.card-header {
+  background: linear-gradient(135deg, rgba(0, 10, 30, 0.9) 0%, rgba(30, 60, 120, 0.7) 100%);
+  padding: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(71, 221, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #71ddff, transparent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.card-header h2 {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1.5px;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #71ddff 50%, #ffffff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Form */
+.report-form {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Form Inputs */
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #71ddff; /* Accent color like login */
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(113, 221, 255, 0.2);
+  transform: scale(1.02);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: rgba(207, 230, 255, 0.7); /* Muted color like login */
+  opacity: 0.8;
+}
+
+.form-select {
+  cursor: pointer;
+  color: white;
+}
+
+.form-select option {
+  background: rgba(0, 10, 30, 0.9);
+  color: white;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+/* Submit Button - เหมือนปุ่ม Confirm ในหน้า balance */
+.submit-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #71ddff 0%, #0090ff 100%);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: lowercase;
+  letter-spacing: 2px;
+  box-shadow: 
+    0 4px 15px rgba(113, 221, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: visible;
+  margin-bottom: 12px;
+}
+
+.submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 60% 15%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.2) 2.5px, transparent 3.5px),
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.3) 1px, transparent 2px),
+    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.5) 2px, transparent 3px),
+    radial-gradient(circle at 15% 60%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 85% 50%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 45% 90%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+    radial-gradient(circle at 25% 10%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.3) 2px, transparent 3px);
+  border-radius: 15px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* คลื่นกระจายออกจากเมาส์ */
+.submit-btn::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  left: var(--mouse-x, 50%);
+  top: var(--mouse-y, 50%);
+  transform: translate(-50%, -50%);
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 2px),
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.5) 1px, transparent 2px),
+    radial-gradient(circle at 20% 70%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+    radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.5) 1px, transparent 2px),
+    radial-gradient(circle at 10% 40%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.3) 1px, transparent 2px),
+    radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.5) 2px, transparent 3px),
+    radial-gradient(circle at 25% 75%, rgba(255, 255, 255, 0.2) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.4) 1px, transparent 2px),
+    radial-gradient(circle at 55% 35%, rgba(255, 255, 255, 0.3) 2px, transparent 3px),
+    radial-gradient(circle at 35% 55%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2.5px);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #0090ff 0%, #0070cc 100%);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 8px 25px rgba(113, 221, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.submit-btn:hover::before {
+  opacity: 1;
+  animation: sparkle-dots 3s ease-in-out infinite;
+}
+
+.submit-btn:hover::after {
+  opacity: 1;
+  animation: mouse-dots-spread 2s ease-out infinite;
+}
+
+.submit-btn.wave-active::before {
+  opacity: 1;
+  animation: sparkle-dots 2.5s ease-in-out infinite;
+}
+
+.submit-btn.wave-active::after {
+  opacity: 1;
+  animation: mouse-dots-spread 1.8s ease-out infinite;
+}
+
+/* แอนิเมชั่นจุดสีกระจายตามเมาส์ */
+@keyframes mouse-dots-spread {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.9;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.7;
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.5;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0.3;
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* แอนิเมชั่นจุดสีพื้นหลัง */
+@keyframes sparkle-dots {
+  0% {
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  75% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+/* Success Toast */
+.success-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+  max-width: 350px;
+}
+
+/* Error Toast */
+.error-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+  max-width: 350px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .report-container {
+    padding: 1rem;
+    padding-top: 1rem;
+  }
+  
+  .report-header {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .report-header h1 {
+    font-size: 1.8rem;
+    padding: 1rem 2rem;
+    border-radius: 40px;
+  }
+  
+  .card-header h2 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  .report-card {
+    margin: 0 1rem 1rem 1rem;
+    border-radius: 20px;
+  }
+  
+  .card-header,
+  .report-form {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-header h1 {
+    font-size: 1.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    letter-spacing: 0.5px;
+  }
+  
+  .card-header h2 {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .card-header,
+  .report-form {
+    padding: 1rem;
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: 0.8rem;
+  }
+  
+  .report-container {
+    padding-top: 0.5rem;
+  }
+  
+  .submit-btn {
+    letter-spacing: 1px;
+  }
+}

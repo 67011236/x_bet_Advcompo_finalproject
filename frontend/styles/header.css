@@ -73,8 +73,8 @@ header.navbar .menu a{
 }
 
 header.navbar .menu a:hover{
-  opacity: 1;
-  text-decoration: underline;
+  color: #71ddff;
+  text-decoration: none;
 }
 
 /* Disabled menu items on login page */
@@ -99,6 +99,69 @@ header.navbar .menu .user-email{
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(5px);
+}
+
+/* Logout button escape animations */
+.logout {
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1001;
+}
+
+.logout.escaped1 {
+  position: fixed !important;
+  top: 40% !important;
+  left: 200px !important;
+  transform: translateY(-50%) !important;
+  background: rgba(255, 59, 59, 0.9) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  text-decoration: none !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 15px rgba(255, 59, 59, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  animation: escapeAnimation1 0.5s ease-out !important;
+}
+
+.logout.escaped2 {
+  position: fixed !important;
+  top: 70% !important;
+  right: 650px !important;
+  transform: translateY(-50%) !important;
+  background: rgba(255, 59, 59, 0.9) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  text-decoration: none !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 15px rgba(255, 59, 59, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  animation: escapeAnimation2 0.5s ease-out !important;
+}
+
+@keyframes escapeAnimation1 {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes escapeAnimation2 {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(-10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 /* จอเล็ก: ลดช่องไฟนิดหน่อย */

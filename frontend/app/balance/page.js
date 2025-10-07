@@ -12,9 +12,42 @@ export default function BalancePage() {
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState("0.00");
   const [balanceLoading, setBalanceLoading] = useState(true);
+  const [notification, setNotification] = useState(null);
 
   const currency = "THB";
   const fee = "0.00";
+
+  // Show notification function
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+  // Mouse tracking wave effect
+  const handleMouseMove = (event) => {
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    // Update CSS custom properties for the wave position (เป็น percentage)
+    button.style.setProperty('--mouse-x', `${x}%`);
+    button.style.setProperty('--mouse-y', `${y}%`);
+  };
+
+  const handleMouseEnter = (event) => {
+    const button = event.currentTarget;
+    // เพิ่ม class สำหรับ active wave state
+    button.classList.add('wave-active');
+  };
+
+  const handleMouseLeave = (event) => {
+    const button = event.currentTarget;
+    // Reset position to center when mouse leaves
+    button.style.setProperty('--mouse-x', '50%');
+    button.style.setProperty('--mouse-y', '50%');
+    button.classList.remove('wave-active');
+  };
 
   // Fetch balance when component mounts
   useEffect(() => {
@@ -44,18 +77,18 @@ export default function BalancePage() {
   const handleWithdraw = async (e) => {
     e.preventDefault();
     if (!withdrawAgree) {
-      alert("Please agree to Terms of Service and Privacy Policy");
+      showNotification("Please agree to Terms of Service and Privacy Policy", 'error');
       return;
     }
     
     const amount = parseFloat(withdrawAmount);
     if (amount <= 0) {
-      alert("Please enter a valid amount");
+      showNotification("Please enter a valid amount", 'error');
       return;
     }
 
     if (amount > parseFloat(balance)) {
-      alert("Insufficient balance");
+      showNotification("Insufficient balance", 'error');
       return;
     }
 
@@ -74,16 +107,16 @@ export default function BalancePage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Withdrawal successful! New balance: ${data.new_balance.toFixed(2)} ${currency}`);
+        showNotification(`Withdrawal successful! New balance: ${data.new_balance.toFixed(2)} ${currency}`, 'error');
         setBalance(data.new_balance.toFixed(2));
         setWithdrawAmount("");
         setWithdrawAgree(false);
       } else {
-        alert(data.detail || "Withdrawal failed");
+        showNotification(data.detail || "Withdrawal failed", 'error');
       }
     } catch (error) {
       console.error("Withdraw error:", error);
-      alert("Network error. Please try again.");
+      showNotification("Network error. Please try again.", 'error');
     } finally {
       setLoading(false);
     }
@@ -92,13 +125,13 @@ export default function BalancePage() {
   const handleDeposit = async (e) => {
     e.preventDefault();
     if (!depositAgree) {
-      alert("Please agree to Terms of Service and Privacy Policy");
+      showNotification("Please agree to Terms of Service and Privacy Policy", 'error');
       return;
     }
     
     const amount = parseFloat(depositAmount);
     if (amount <= 0) {
-      alert("Please enter a valid amount");
+      showNotification("Please enter a valid amount", 'error');
       return;
     }
 
@@ -117,16 +150,16 @@ export default function BalancePage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Deposit successful! New balance: ${data.new_balance.toFixed(2)} ${currency}`);
+        showNotification(`Deposit successful! New balance: ${data.new_balance.toFixed(2)} ${currency}`, 'success');
         setBalance(data.new_balance.toFixed(2));
         setDepositAmount("");
         setDepositAgree(false);
       } else {
-        alert(data.detail || "Deposit failed");
+        showNotification(data.detail || "Deposit failed", 'error');
       }
     } catch (error) {
       console.error("Deposit error:", error);
-      alert("Network error. Please try again.");
+      showNotification("Network error. Please try again.", 'error');
     } finally {
       setLoading(false);
     }
@@ -187,6 +220,9 @@ export default function BalancePage() {
                 type="submit" 
                 className="action-btn"
                 disabled={loading || !withdrawAmount || !withdrawAgree}
+                onMouseMove={handleMouseMove}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
                 {loading ? "Processing..." : "Confirm"}
               </button>
@@ -238,6 +274,9 @@ export default function BalancePage() {
                 type="submit" 
                 className="action-btn"
                 disabled={loading || !depositAmount || !depositAgree}
+                onMouseMove={handleMouseMove}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
                 {loading ? "Processing..." : "Confirm"}
               </button>
@@ -258,6 +297,21 @@ export default function BalancePage() {
           </div>
         </div>
       </div>
+
+      {/* Notification */}
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          <div className="notification-content">
+            <span>{notification.message}</span>
+            <button 
+              className="notification-close" 
+              onClick={() => setNotification(null)}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     </Protected>
   );

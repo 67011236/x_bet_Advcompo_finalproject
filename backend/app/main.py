@@ -8,7 +8,7 @@ from sqlalchemy import func
 from decimal import Decimal
 
 # import ของคุณเอง
-from .models import SessionLocal, User, Details, create_db, ensure_admin
+from .models import SessionLocal, User, Credit, Report, create_db, ensure_admin
 
 APP_NAME = os.getenv("APP_NAME", "MyApp")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@xbet.com").lower()
@@ -73,6 +73,11 @@ class DepositPayload(BaseModel):
 class WithdrawPayload(BaseModel):
     amount: float
 
+class ReportPayload(BaseModel):
+    title: str
+    category: str
+    description: str
+
 # ---------- Endpoints ----------
 @app.get("/")
 def root(request: Request):
@@ -102,31 +107,96 @@ def balance(request: Request, db: Session = Depends(get_db)):
     if not email:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    # ดึงข้อมูล user และ balance จาก details table
+    # ดึงข้อมูล user และ balance จาก credit table
     user = db.query(User).filter(func.lower(User.email) == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # ดึง balance จาก details table
-    user_details = db.query(Details).filter(Details.user_id == user.id).first()
-    if not user_details:
-        # ถ้าไม่มี details record ให้สร้างใหม่
-        user_details = Details(user_id=user.id, balance=Decimal('0.00'))
-        db.add(user_details)
+    # ดึง balance จาก credit table
+    user_credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+    if not user_credit:
+        # ถ้าไม่มี credit record ให้สร้างใหม่
+        user_credit = Credit(user_id=user.id, balance=Decimal('0.00'))
+        db.add(user_credit)
         db.commit()
-        db.refresh(user_details)
+        db.refresh(user_credit)
     
     return {
-        "amount": float(user_details.balance),
+        "amount": float(user_credit.balance),
         "currency": "THB",
         "user_id": user.id,
-        "last_updated": user_details.updated_at
+        "last_updated": user_credit.updated_at
     }
 
 @app.get("/reports")
 def reports(request: Request, db: Session = Depends(get_db)):
     must_admin(request)
-    return {"items": [{"id": 1, "name": "Report A"}]}
+    
+    # ดึง reports ทั้งหมดพร้อมข้อมูล user
+    reports = db.query(Report).join(User).order_by(Report.created_at.desc()).all()
+    
+    reports_data = []
+    for report in reports:
+        reports_data.append({
+            "id": report.id,
+            "title": report.title,
+            "category": report.category,
+            "description": report.description,
+            "status": report.status,
+            "user_email": report.user.email,
+            "user_name": report.user.full_name,
+            "created_at": report.created_at.isoformat(),
+            "updated_at": report.updated_at.isoformat()
+        })
+    
+    return {"reports": reports_data}
+
+@app.post("/api/submit-report")
+async def submit_report(payload: ReportPayload, request: Request, db: Session = Depends(get_db)):
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # ตรวจสอบข้อมูล
+    if not payload.title or not payload.category or not payload.description:
+        raise HTTPException(status_code=400, detail="All fields are required")
+    
+    if payload.category not in ["technical", "payment", "account", "betting", "suggestion", "other"]:
+        raise HTTPException(status_code=400, detail="Invalid category")
+    
+    # หา user
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    print(f"📝 Report submission: {email} - {payload.title[:50]}...")
+    
+    # สร้าง report ใหม่
+    new_report = Report(
+        user_id=user.id,
+        title=payload.title.strip(),
+        category=payload.category,
+        description=payload.description.strip(),
+        status="pending"
+    )
+    
+    try:
+        db.add(new_report)
+        db.commit()
+        db.refresh(new_report)
+        
+        print(f"✅ Report saved successfully: ID {new_report.id}")
+        
+        return {
+            "message": "Report submitted successfully",
+            "report_id": new_report.id,
+            "status": "pending"
+        }
+        
+    except Exception as e:
+        print(f"❌ Error saving report: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to save report")
 
 @app.post("/api/register")
 async def register(payload: RegisterPayload, db: Session = Depends(get_db)):
@@ -161,12 +231,12 @@ async def register(payload: RegisterPayload, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     
-    # สร้าง Details (Balance) สำหรับ User ใหม่ด้วยยอดเงิน 0.00
-    user_details = Details(
+    # สร้าง Credit (Balance) สำหรับ User ใหม่ด้วยยอดเงิน 0.00
+    user_credit = Credit(
         user_id=user.id,
         balance=Decimal('0.00')
     )
-    db.add(user_details)
+    db.add(user_credit)
     db.commit()
     
     return {"message": "Registered successfully"}
@@ -224,14 +294,14 @@ async def deposit(payload: DepositPayload, request: Request, db: Session = Depen
         raise HTTPException(status_code=404, detail="User not found")
     
     # อัพเดต balance
-    user_details = db.query(Details).filter(Details.user_id == user.id).first()
-    if not user_details:
-        user_details = Details(user_id=user.id, balance=Decimal('0.00'))
-        db.add(user_details)
+    user_credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+    if not user_credit:
+        user_credit = Credit(user_id=user.id, balance=Decimal('0.00'))
+        db.add(user_credit)
     
-    old_balance = float(user_details.balance)
-    user_details.balance += Decimal(str(payload.amount))
-    new_balance = float(user_details.balance)
+    old_balance = float(user_credit.balance)
+    user_credit.balance += Decimal(str(payload.amount))
+    new_balance = float(user_credit.balance)
     db.commit()
     
     print(f"✅ Deposit successful: {email} balance updated from {old_balance} to {new_balance}")
@@ -259,15 +329,15 @@ async def withdraw(payload: WithdrawPayload, request: Request, db: Session = Dep
         raise HTTPException(status_code=404, detail="User not found")
     
     # ตรวจสอบ balance เพียงพอ
-    user_details = db.query(Details).filter(Details.user_id == user.id).first()
-    if not user_details or user_details.balance < Decimal(str(payload.amount)):
-        print(f"❌ Insufficient balance: {email} has {user_details.balance if user_details else 0}, wants {payload.amount}")
+    user_credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+    if not user_credit or user_credit.balance < Decimal(str(payload.amount)):
+        print(f"❌ Insufficient balance: {email} has {user_credit.balance if user_credit else 0}, wants {payload.amount}")
         raise HTTPException(status_code=400, detail="Insufficient balance")
     
     # หัก balance
-    old_balance = float(user_details.balance)
-    user_details.balance -= Decimal(str(payload.amount))
-    new_balance = float(user_details.balance)
+    old_balance = float(user_credit.balance)
+    user_credit.balance -= Decimal(str(payload.amount))
+    new_balance = float(user_credit.balance)
     db.commit()
     
     print(f"✅ Withdrawal successful: {email} balance updated from {old_balance} to {new_balance}")
