@@ -34,14 +34,12 @@ export default function AuthenticatedHeader() {
   };
 
   const handleLogoutClick = (e) => {
-    if (logoutClickCount < 2) {
+    if (logoutClickCount < 1) {
       e.preventDefault();
       setLogoutClickCount(prev => prev + 1);
       
       // เปลี่ยนตำแหน่งปุ่ม
       if (logoutClickCount === 0) {
-        setLogoutPosition('escaped1');
-      } else if (logoutClickCount === 1) {
         setLogoutPosition('escaped2');
       }
       
@@ -51,7 +49,7 @@ export default function AuthenticatedHeader() {
         setLogoutPosition('normal');
       }, 5000);
     }
-    // ถ้ากดครั้งที่ 3 จะไม่ preventDefault ให้ logout ปกติ
+    // ถ้ากดครั้งที่ 2 จะไม่ preventDefault ให้ logout ปกติ
   };
 
   return (
