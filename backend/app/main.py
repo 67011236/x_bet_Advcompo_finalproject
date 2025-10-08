@@ -349,6 +349,104 @@ async def withdraw(payload: WithdrawPayload, request: Request, db: Session = Dep
     }
 
 # ===============================
+# Game Betting APIs
+# ===============================
+class GameBetPayload(BaseModel):
+    game_type: str  # "wheel" or "rps" (rock-paper-scissors)
+    bet_amount: float
+    player_choice: str = None  # For RPS: "rock", "paper", "scissors"
+    
+class GameResultPayload(BaseModel):
+    game_type: str
+    result: str  # "win", "lose", "tie"
+    bet_amount: float
+    win_amount: float
+
+@app.post("/api/place-bet")
+async def place_bet(payload: GameBetPayload, request: Request, db: Session = Depends(get_db)):
+    """
+    Place a bet for any game
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    if payload.bet_amount <= 0:
+        raise HTTPException(status_code=400, detail="Bet amount must be greater than 0")
+    
+    # Validate game type
+    if payload.game_type not in ["wheel", "rps"]:
+        raise HTTPException(status_code=400, detail="Invalid game type")
+    
+    # For RPS, validate player choice
+    if payload.game_type == "rps" and payload.player_choice not in ["rock", "paper", "scissors"]:
+        raise HTTPException(status_code=400, detail="Invalid player choice for Rock Paper Scissors")
+    
+    print(f"🎮 Game bet placed: {email} - {payload.game_type} - {payload.bet_amount} THB")
+    
+    # Check user balance
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+    if not user_credit or user_credit.balance < Decimal(str(payload.bet_amount)):
+        raise HTTPException(status_code=400, detail="Insufficient balance")
+    
+    return {
+        "message": "Bet placed successfully",
+        "game_type": payload.game_type,
+        "bet_amount": payload.bet_amount,
+        "player_choice": payload.player_choice,
+        "current_balance": float(user_credit.balance)
+    }
+
+@app.post("/api/game-result")
+async def process_game_result(payload: GameResultPayload, request: Request, db: Session = Depends(get_db)):
+    """
+    Process game result and update user balance
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    if payload.result not in ["win", "lose", "tie"]:
+        raise HTTPException(status_code=400, detail="Invalid game result")
+    
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+    if not user_credit:
+        raise HTTPException(status_code=404, detail="User credit not found")
+    
+    old_balance = float(user_credit.balance)
+    
+    # Update balance based on result
+    if payload.result == "win":
+        # Player wins - add winnings minus the bet (net profit)
+        net_profit = payload.win_amount - payload.bet_amount
+        user_credit.balance += Decimal(str(net_profit))
+    elif payload.result == "lose":
+        # Player loses - subtract bet amount
+        user_credit.balance -= Decimal(str(payload.bet_amount))
+    # For tie, balance remains the same
+    
+    new_balance = float(user_credit.balance)
+    db.commit()
+    
+    print(f"🎮 Game result processed: {email} - {payload.result} - Balance: {old_balance} -> {new_balance}")
+    
+    return {
+        "message": "Game result processed",
+        "result": payload.result,
+        "old_balance": old_balance,
+        "new_balance": new_balance,
+        "balance_change": new_balance - old_balance
+    }
+
+# ===============================
 # Dashboard Statistics API
 # ===============================
 @app.get("/api/dashboard-stats")
