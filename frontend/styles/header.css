@@ -101,11 +101,15 @@ header.navbar .menu .user-email{
   backdrop-filter: blur(5px);
 }
 
-/* Logout button escape animations */
+/* Logout button styles */
 .logout {
   transition: all 0.3s ease;
   position: relative;
   z-index: 1001;
+}
+
+.logout:hover {
+  color: #ff3b3b !important;
 }
 
 .logout.escaped1 {

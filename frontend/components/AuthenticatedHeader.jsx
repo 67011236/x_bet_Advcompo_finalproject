@@ -7,8 +7,6 @@ export default function AuthenticatedHeader() {
   const [userEmail, setUserEmail] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [logoutClickCount, setLogoutClickCount] = useState(0);
-  const [logoutPosition, setLogoutPosition] = useState('normal');
 
   useEffect(() => {
     fetchUserData();
@@ -31,25 +29,6 @@ export default function AuthenticatedHeader() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogoutClick = (e) => {
-    if (logoutClickCount < 1) {
-      e.preventDefault();
-      setLogoutClickCount(prev => prev + 1);
-      
-      // เปลี่ยนตำแหน่งปุ่ม
-      if (logoutClickCount === 0) {
-        setLogoutPosition('escaped2');
-      }
-      
-      // Reset หลัง 5 วินาที
-      setTimeout(() => {
-        setLogoutClickCount(0);
-        setLogoutPosition('normal');
-      }, 5000);
-    }
-    // ถ้ากดครั้งที่ 2 จะไม่ preventDefault ให้ logout ปกติ
   };
 
   return (
@@ -79,7 +58,7 @@ export default function AuthenticatedHeader() {
           <span className="user-email">{userEmail}</span>
         )}
 
-        <Link href="/logout" className={`logout ${logoutPosition}`} onClick={handleLogoutClick}>
+        <Link href="/logout" className="logout">
           Logout
         </Link>
       </nav>

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Protected from "../../components/Protected";
 import AuthenticatedHeader from "../../components/AuthenticatedHeader";
+import Link from "next/link";
 import "../../styles/game-selection.css";
 
 export default function GameSelection() {
