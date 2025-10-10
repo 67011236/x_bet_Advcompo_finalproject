@@ -8,7 +8,7 @@ from sqlalchemy import func
 from decimal import Decimal
 
 # import ของคุณเอง
-from .models import SessionLocal, User, Credit, Report, create_db, ensure_admin
+from .models import SessionLocal, User, Credit, Report, Game1, create_db, ensure_admin
 
 APP_NAME = os.getenv("APP_NAME", "MyApp")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@xbet.com").lower()
@@ -362,6 +362,13 @@ class GameResultPayload(BaseModel):
     bet_amount: float
     win_amount: float
 
+class Game1PlayPayload(BaseModel):
+    bet_amount: int
+    selected_color: str  # "blue" or "white"
+    result_color: str   # "blue" or "white"
+    won: bool
+    payout_amount: int
+
 @app.post("/api/place-bet")
 async def place_bet(payload: GameBetPayload, request: Request, db: Session = Depends(get_db)):
     """
@@ -471,3 +478,52 @@ async def get_dashboard_stats(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"❌ Error fetching dashboard stats: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+# ===============================
+# Game1 Play Tracking API
+# ===============================
+@app.post("/api/game1-play")
+async def record_game1_play(payload: Game1PlayPayload, request: Request, db: Session = Depends(get_db)):
+    """
+    Record a game1 play session in the database
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Validate input
+    if payload.selected_color not in ["blue", "white"]:
+        raise HTTPException(status_code=400, detail="Invalid selected color")
+    
+    if payload.result_color not in ["blue", "white"]:
+        raise HTTPException(status_code=400, detail="Invalid result color")
+    
+    if payload.bet_amount <= 0:
+        raise HTTPException(status_code=400, detail="Bet amount must be positive")
+    
+    try:
+        # Create new game1 play record
+        game1_play = Game1(
+            user_id=email,  # ใช้ email เป็น user_id
+            bet_amount=payload.bet_amount,
+            selected_color=payload.selected_color,
+            result_color=payload.result_color,
+            won=1 if payload.won else 0,
+            payout_amount=payload.payout_amount
+        )
+        
+        db.add(game1_play)
+        db.commit()
+        
+        print(f"🎮 Game1 play recorded: {email} - {payload.selected_color} vs {payload.result_color} - {'Won' if payload.won else 'Lost'} {payload.payout_amount}")
+        
+        return {
+            "message": "Game1 play recorded successfully",
+            "play_id": game1_play.id,
+            "status": "success"
+        }
+        
+    except Exception as e:
+        print(f"❌ Error recording game1 play: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to record game play")

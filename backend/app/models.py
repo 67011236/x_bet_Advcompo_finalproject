@@ -102,6 +102,28 @@ class Report(Base):
     )
 
 # ===============================
+# Game1 ORM model (Game play tracking)
+# ===============================
+class Game1(Base):
+    __tablename__ = "game1"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(50), nullable=False)  # อาจเป็น email หรือ ID อื่น
+    bet_amount = Column(Integer, nullable=False)
+    selected_color = Column(String(10), nullable=False)  # "blue" หรือ "white"
+    result_color = Column(String(10), nullable=False)   # ผลลัพธ์จากล้อ
+    won = Column(Integer, nullable=False)               # 1 = ชนะ, 0 = แพ้
+    payout_amount = Column(Integer, nullable=False)     # จำนวนเงินที่ได้/เสีย
+    played_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        CheckConstraint("selected_color IN ('blue','white')", name="selected_color_allowed"),
+        CheckConstraint("result_color IN ('blue','white')", name="result_color_allowed"),
+        CheckConstraint("won IN (0,1)", name="won_boolean"),
+        CheckConstraint("bet_amount > 0", name="bet_amount_positive"),
+    )
+
+# ===============================
 # Create DB
 # ===============================
 def create_db():

@@ -5,7 +5,7 @@ import AuthenticatedHeader from "../../components/AuthenticatedHeader";
 import "./style.css";
 
 export default function Game1() {
-  const [balance, setBalance] = useState(1000);
+  const [balance, setBalance] = useState(0);
   const [betAmount, setBetAmount] = useState(50);
   const [lastResult, setLastResult] = useState(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -16,9 +16,44 @@ export default function Game1() {
 
   useEffect(() => {
     setIsMounted(true);
+    fetchBalance();
   }, []);
 
-  const spinWheel = () => {
+  const fetchBalance = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/balance", {
+        method: "GET",
+        credentials: "include",
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBalance(data.amount);
+      } else {
+        console.error("Failed to fetch balance");
+      }
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+    }
+  };
+
+  const updateBalance = async (newAmount) => {
+    try {
+      // อัพเดต balance ใน state ทันที
+      setBalance(newAmount);
+      
+      // เรียก API เพื่อ sync กับ database
+      await fetchBalance();
+    } catch (error) {
+      console.error("Error updating balance:", error);
+    }
+  };
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const spinWheel = async () => {
     if (isSpinning || betAmount > balance || betAmount <= 0 || !isMounted) return;
     
     setIsSpinning(true);
@@ -50,7 +85,7 @@ export default function Game1() {
     wheel.style.transition = `transform ${spinDuration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
     wheel.style.transform = `rotate(${totalRotation}deg)`;
     
-    setTimeout(() => {
+    setTimeout(async () => {
       // Calculate where the wheel actually stopped
       const finalAngle = totalRotation % 360;
       const normalizedAngle = (360 - finalAngle) % 360;
@@ -62,21 +97,97 @@ export default function Game1() {
       
       const playerWins = (selectedColor === "blue" && landedOnBlue) || (selectedColor === "white" && !landedOnBlue);
       
-      if (playerWins) {
-        setBalance(prev => prev + betAmount);
-        setLastResult({ 
-          result: "WIN", 
-          win: true, 
-          amount: betAmount,
-          color: landedColor,
-          segment: segmentIndex + 1,
-          chosenColor: selectedColor
+      // Prepare game result for API call
+      const gameResult = {
+        game_type: "wheel",
+        result: playerWins ? "win" : "lose",
+        bet_amount: betAmount,
+        win_amount: playerWins ? betAmount * 2 : 0
+      };
+
+      try {
+        // Send game result to backend
+        const response = await fetch("http://localhost:8000/api/game-result", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(gameResult),
         });
-      } else {
-        setBalance(prev => prev - betAmount);
+
+        if (response.ok) {
+          const data = await response.json();
+          // Update balance from backend response
+          setBalance(data.new_balance);
+          
+          setLastResult({ 
+            result: playerWins ? "WIN" : "LOSE", 
+            win: playerWins, 
+            amount: betAmount,
+            color: landedColor,
+            segment: segmentIndex + 1,
+            chosenColor: selectedColor,
+            balanceChange: data.balance_change
+          });
+
+          // Record game1 play data
+          try {
+            const game1PlayData = {
+              bet_amount: betAmount,
+              selected_color: selectedColor,
+              result_color: landedOnBlue ? "blue" : "white",
+              won: playerWins,
+              payout_amount: playerWins ? betAmount : -betAmount
+            };
+
+            const game1Response = await fetch("http://localhost:8000/api/game1-play", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(game1PlayData),
+            });
+
+            if (game1Response.ok) {
+              console.log("🎮 Game1 play data recorded successfully");
+            } else {
+              console.warn("⚠️ Failed to record game1 play data");
+            }
+          } catch (game1Error) {
+            console.error("❌ Error recording game1 play:", game1Error);
+          }
+        } else {
+          console.error("Failed to process game result");
+          // Fallback to local balance update (original logic)
+          if (playerWins) {
+            setBalance(prev => prev + betAmount);
+          } else {
+            setBalance(prev => prev - betAmount);
+          }
+          
+          setLastResult({ 
+            result: playerWins ? "WIN" : "LOSE", 
+            win: playerWins, 
+            amount: betAmount,
+            color: landedColor,
+            segment: segmentIndex + 1,
+            chosenColor: selectedColor
+          });
+        }
+      } catch (error) {
+        console.error("Error processing game result:", error);
+        // Fallback to local balance update
+        if (playerWins) {
+          setBalance(prev => prev + betAmount);
+        } else {
+          setBalance(prev => prev - betAmount);
+        }
+        
         setLastResult({ 
-          result: "LOSE", 
-          win: false, 
+          result: playerWins ? "WIN" : "LOSE", 
+          win: playerWins, 
           amount: betAmount,
           color: landedColor,
           segment: segmentIndex + 1,
@@ -104,18 +215,22 @@ export default function Game1() {
     <Protected>
       <div style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "url('/bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
         fontFamily: '"Prompt", system-ui, Arial, sans-serif',
         padding: "20px",
         paddingBottom: "40px" // Add extra bottom padding
       }}>
         <AuthenticatedHeader />
         
-        <div style={{ textAlign: "center", marginTop: "60px", marginBottom: "40px" }}>
+        <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "20px" }}>
           <h1 style={{ 
             color: "white", 
-            fontSize: "3rem", 
-            margin: "0 0 16px 0", 
+            fontSize: "2rem", 
+            margin: "0 0 8px 0", 
             fontWeight: "900",
             textShadow: "2px 2px 4px rgba(0,0,0,0.5)"
           }}>
@@ -123,7 +238,7 @@ export default function Game1() {
           </h1>
           <p style={{ 
             color: "rgba(255,255,255,0.9)", 
-            fontSize: "1.2rem", 
+            fontSize: "1rem", 
             margin: 0 
           }}>
             Choose Blue or White and spin for luck!
@@ -132,28 +247,169 @@ export default function Game1() {
 
         <div style={{ 
           display: "flex", 
-          gap: "40px", 
+          gap: "20px", 
           flexWrap: "wrap",
-          maxWidth: "1400px",
+          maxWidth: "1200px",
           margin: "0 auto",
           justifyContent: "center",
-          alignItems: "flex-start" // Align items to top instead of stretch
+          alignItems: "center"
         }}>
           
+          {/* Game Rules - Left Side */}
           <div style={{
-            background: "rgba(255, 255, 255, 0.95)",
+            width: "350px",
+            background: "rgba(7, 12, 26, 0.95)",
             borderRadius: "20px",
-            padding: "40px",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-            backdropFilter: "blur(10px)",
+            padding: "20px",
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4)",
+            backdropFilter: "blur(15px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "15px",
+            maxHeight: "calc(100vh - 150px)",
+            overflowY: "auto",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            transform: "translateY(0px)",
+            cursor: "pointer"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = "translateY(-8px)";
+            e.target.style.boxShadow = "0 25px 80px rgba(0, 0, 0, 0.5), 0 0 30px rgba(113, 221, 255, 0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = "translateY(0px)";
+            e.target.style.boxShadow = "0 20px 60px rgba(0, 0, 0, 0.4)";
+          }}
+          >
+            <div style={{
+              background: "rgba(0, 90, 255, 0.15)",
+              borderRadius: "10px",
+              padding: "20px"
+            }}>
+              <h4 style={{ margin: "0 0 15px 0", color: "#71ddff", fontSize: "18px" }}>🎯 Game Rules</h4>
+              <div style={{ fontSize: "15px", color: "#e2e8f0", lineHeight: "1.6" }}>
+                <div style={{ 
+                  marginBottom: "12px", 
+                  padding: "8px", 
+                  background: "rgba(33, 150, 243, 0.2)", 
+                  borderRadius: "6px",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-4px)";
+                  e.target.style.background = "rgba(33, 150, 243, 0.35)";
+                  e.target.style.boxShadow = "0 8px 20px rgba(33, 150, 243, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0px)";
+                  e.target.style.background = "rgba(33, 150, 243, 0.2)";
+                  e.target.style.boxShadow = "none";
+                }}
+                >
+                  <span style={{ color: "#71ddff", fontWeight: "bold", fontSize: "16px" }}>Blue 🍀 (5 segments):</span>
+                  <br />
+                  <span style={{ color: "#cbd5e0" }}>Choose blue to win when wheel lands on blue!</span>
+                </div>
+                <div style={{ 
+                  marginBottom: "12px", 
+                  padding: "8px", 
+                  background: "rgba(255, 255, 255, 0.1)", 
+                  borderRadius: "6px",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-4px)";
+                  e.target.style.background = "rgba(255, 255, 255, 0.2)";
+                  e.target.style.boxShadow = "0 8px 20px rgba(255, 255, 255, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0px)";
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)";
+                  e.target.style.boxShadow = "none";
+                }}
+                >
+                  <span style={{ color: "#f7fafc", fontWeight: "bold", fontSize: "16px" }}>White 💎 (5 segments):</span>
+                  <br />
+                  <span style={{ color: "#cbd5e0" }}>Choose white to win when wheel lands on white!</span>
+                </div>
+                <div
+                  style={{ 
+                    marginTop: "15px", 
+                    fontSize: "14px", 
+                    background: "rgba(255, 146, 51, 0.18)", 
+                    padding: "16px 18px", 
+                    borderRadius: "12px",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    cursor: "pointer"
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = "translateY(-8px)";
+                    e.currentTarget.style.boxShadow = "0 12px 32px rgba(255,146,51,0.25)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = "translateY(0px)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <div style={{ fontWeight: "bold", color: "#ff9233", marginBottom: "8px" }}>Your Current Choice:</div>
+                  <span style={{ 
+                    color: selectedColor === "blue" ? "#71ddff" : "#f7fafc", 
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                    marginBottom: "8px",
+                    display: "block"
+                  }}>
+                    {selectedColor === "blue" ? "🍀 BLUE" : "💎 WHITE"}
+                  </span>
+                  <div style={{ color: "#cbd5e0", fontSize: "13px", marginTop: "8px" }}>
+                    Win if wheel lands on your chosen color! • 50/50 chance • 1:1 payout
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {lastResult && (
+              <div style={{
+                background: lastResult.win ? "rgba(0, 90, 255, 0.2)" : "rgba(255, 80, 80, 0.2)",
+                borderRadius: "12px",
+                padding: "15px",
+                textAlign: "center",
+                border: lastResult.win ? "2px solid #71ddff" : "2px solid #ff5050",
+                marginBottom: "10px"
+              }}>
+                <div style={{ fontSize: "16px", color: "#cbd5e0", marginBottom: "8px" }}>
+                  Last Result:
+                </div>
+                <div style={{ 
+                  color: lastResult.win ? "#71ddff" : "#ff5050",
+                  fontWeight: "bold",
+                  fontSize: "18px"
+                }}>
+                  {lastResult.win ? "WIN" : "LOSE"} {lastResult.win ? "+" : "-"}{lastResult.amount} coins
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Wheel Game - Center */}
+          <div style={{
+            background: "rgba(7, 12, 26, 0.95)",
+            borderRadius: "20px",
+            padding: "25px",
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4)",
+            backdropFilter: "blur(15px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "30px",
-            minWidth: "600px" // Increased from 500px
+            gap: "20px",
+            minWidth: "450px"
           }}>
             
-            <div style={{ position: "relative", width: "500px", height: "500px" }}> {/* Increased from 400px */}
+            <div style={{ position: "relative", width: "350px", height: "350px" }}>
               <div style={{
                 position: "absolute",
                 top: "-5px",
@@ -171,16 +427,16 @@ export default function Game1() {
               <div 
                 ref={wheelRef}
                 style={{
-                  width: "500px", // Increased from 400px
-                  height: "500px", // Increased from 400px
+                  width: "350px",
+                  height: "350px",
                   borderRadius: "50%",
-                  border: "10px solid #333",
+                  border: "8px solid #333",
                   position: "relative",
                   overflow: "hidden",
                   transform: "rotate(0deg)",
                   // Remove the transition property from here - it's controlled by JS
                   background: "conic-gradient(from 0deg, #2196F3 0deg 36deg, #ffffff 36deg 72deg, #2196F3 72deg 108deg, #ffffff 108deg 144deg, #2196F3 144deg 180deg, #ffffff 180deg 216deg, #2196F3 216deg 252deg, #ffffff 252deg 288deg, #2196F3 288deg 324deg, #ffffff 324deg 360deg)",
-                  boxShadow: "0 15px 40px rgba(0, 0, 0, 0.4)"
+                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)"
                 }}
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => {
@@ -205,7 +461,7 @@ export default function Game1() {
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => {
                   const angle = index * 36 + 18;
                   const isBlue = index % 2 === 0;
-                  const radius = 140; // Increased from 110
+                  const radius = 100;
                   const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
                   const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
                   
@@ -217,7 +473,7 @@ export default function Game1() {
                         top: "50%",
                         left: "50%",
                         transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
-                        fontSize: "32px", // Increased from 28px
+                        fontSize: "24px",
                         textShadow: isBlue ? "0 1px 2px rgba(0,0,0,0.3)" : "0 1px 2px rgba(255,255,255,0.8)",
                         zIndex: 2
                       }}
@@ -232,16 +488,16 @@ export default function Game1() {
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: "80px", // Increased from 65px
-                  height: "80px", // Increased from 65px
+                  width: "60px",
+                  height: "60px",
                   borderRadius: "50%",
                   background: "linear-gradient(45deg, #333, #555)",
-                  border: "4px solid #fff",
+                  border: "3px solid #fff",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "white",
-                  fontSize: "28px", // Increased from 22px
+                  fontSize: "20px",
                   fontWeight: "bold",
                   zIndex: 5,
                   boxShadow: "0 3px 12px rgba(0,0,0,0.4)"
@@ -262,10 +518,10 @@ export default function Game1() {
                 disabled={isSpinning}
                 style={{
                   background: selectedColor === "blue" 
-                    ? "linear-gradient(45deg, #2196F3, #1976D2)" 
-                    : "rgba(33, 150, 243, 0.2)",
-                  color: selectedColor === "blue" ? "white" : "#2196F3",
-                  border: selectedColor === "blue" ? "none" : "2px solid #2196F3",
+                    ? "linear-gradient(45deg, #005aff, #0040cc)" 
+                    : "rgba(0, 90, 255, 0.2)",
+                  color: selectedColor === "blue" ? "white" : "#71ddff",
+                  border: selectedColor === "blue" ? "none" : "2px solid #71ddff",
                   borderRadius: "15px",
                   padding: "12px 24px",
                   fontSize: "16px",
@@ -275,7 +531,7 @@ export default function Game1() {
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  boxShadow: selectedColor === "blue" ? "0 4px 15px rgba(33, 150, 243, 0.4)" : "none"
+                  boxShadow: selectedColor === "blue" ? "0 4px 15px rgba(0, 90, 255, 0.4)" : "none"
                 }}
               >
                 🍀 BLUE
@@ -284,7 +540,7 @@ export default function Game1() {
               <div style={{
                 fontSize: "18px",
                 fontWeight: "bold",
-                color: "#666"
+                color: "#cbd5e0"
               }}>
                 choose
               </div>
@@ -294,10 +550,10 @@ export default function Game1() {
                 disabled={isSpinning}
                 style={{
                   background: selectedColor === "white" 
-                    ? "linear-gradient(45deg, #757575, #424242)" 
-                    : "rgba(117, 117, 117, 0.2)",
-                  color: selectedColor === "white" ? "white" : "#757575",
-                  border: selectedColor === "white" ? "none" : "2px solid #757575",
+                    ? "linear-gradient(45deg, #ffffff, #f8f9fa)" 
+                    : "rgba(255, 255, 255, 0.15)",
+                  color: selectedColor === "white" ? "#1a202c" : "#f7fafc",
+                  border: selectedColor === "white" ? "2px solid #e2e8f0" : "2px solid #f7fafc",
                   borderRadius: "15px",
                   padding: "12px 24px",
                   fontSize: "16px",
@@ -307,7 +563,7 @@ export default function Game1() {
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  boxShadow: selectedColor === "white" ? "0 4px 15px rgba(117, 117, 117, 0.4)" : "none"
+                  boxShadow: selectedColor === "white" ? "0 4px 15px rgba(255, 255, 255, 0.3)" : "none"
                 }}
               >
                 💎 WHITE
@@ -318,7 +574,7 @@ export default function Game1() {
               onClick={spinWheel}
               disabled={isSpinning || betAmount > balance || betAmount <= 0}
               style={{
-                background: isSpinning ? "#ccc" : "linear-gradient(45deg, #FF6B35, #F7931E)",
+                background: isSpinning ? "#374151" : "linear-gradient(135deg, rgba(113, 221, 255, 0.6) 0%, rgba(0, 144, 255, 0.7) 100%)",
                 color: "white",
                 border: "none",
                 borderRadius: "50px",
@@ -326,38 +582,66 @@ export default function Game1() {
                 fontSize: "18px",
                 fontWeight: "bold",
                 cursor: isSpinning ? "not-allowed" : "pointer",
-                boxShadow: "0 8px 25px rgba(255, 107, 53, 0.3)",
+                boxShadow: "0 8px 25px rgba(113, 221, 255, 0.3)",
                 transform: isSpinning ? "scale(0.95)" : "scale(1)",
-                transition: "all 0.2s ease"
+                transition: "all 0.3s ease"
+              }}
+              onMouseEnter={(e) => {
+                if (!isSpinning && betAmount <= balance && betAmount > 0) {
+                  e.target.style.background = "linear-gradient(135deg, #71ddff 0%, #0090ff 100%)";
+                  e.target.style.transform = "scale(1.05)";
+                  e.target.style.boxShadow = "0 12px 35px rgba(113, 221, 255, 0.5)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSpinning && betAmount <= balance && betAmount > 0) {
+                  e.target.style.background = "linear-gradient(135deg, rgba(113, 221, 255, 0.6) 0%, rgba(0, 144, 255, 0.7) 100%)";
+                  e.target.style.transform = "scale(1)";
+                  e.target.style.boxShadow = "0 8px 25px rgba(113, 221, 255, 0.3)";
+                }
               }}
             >
               {isSpinning ? "🎲 SPINNING..." : `🎲 SPIN FOR ${selectedColor.toUpperCase()}`}
             </button>
           </div>
 
+          {/* Balance and Controls - Right Side */}
           <div style={{
-            width: "500px",
-            background: "rgba(255, 255, 255, 0.95)",
+            width: "300px",
+            background: "rgba(7, 12, 26, 0.95)",
             borderRadius: "20px",
-            padding: "30px",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-            backdropFilter: "blur(10px)",
+            padding: "20px",
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4)",
+            backdropFilter: "blur(15px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
             display: "flex",
             flexDirection: "column",
-            gap: "20px",
-            maxHeight: "calc(100vh - 200px)", // Limit max height to prevent overflow
-            overflowY: "auto" // Add scroll if content is too long
-          }}>
+            gap: "15px",
+            maxHeight: "calc(100vh - 150px)",
+            overflowY: "auto",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            transform: "translateY(0px)",
+            cursor: "pointer"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = "translateY(-8px)";
+            e.target.style.boxShadow = "0 25px 80px rgba(0, 0, 0, 0.5), 0 0 30px rgba(113, 221, 255, 0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = "translateY(0px)";
+            e.target.style.boxShadow = "0 20px 60px rgba(0, 0, 0, 0.4)";
+          }}
+          >
             
             <div style={{
-              background: "linear-gradient(45deg, #4CAF50, #45a049)",
+              background: "linear-gradient(45deg, #ff9233, #ff7a00)",
               borderRadius: "15px",
-              padding: "20px",
+              padding: "15px",
               textAlign: "center",
               color: "white"
             }}>
-              <div style={{ fontSize: "14px", opacity: 0.9 }}>Your Balance</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold" }}>💰 {balance} coins</div>
+              <div style={{ fontSize: "12px", opacity: 0.9 }}>Your Balance</div>
+              <div style={{ fontSize: "22px", fontWeight: "bold" }}>💰 {balance} coins</div>
             </div>
 
             <div>
@@ -365,7 +649,7 @@ export default function Game1() {
                 display: "block", 
                 marginBottom: "10px", 
                 fontWeight: "bold",
-                color: "#333"
+                color: "#e2e8f0"
               }}>
                 Bet Amount
               </label>
@@ -373,13 +657,13 @@ export default function Game1() {
                 <button
                   onClick={() => setBetAmount(Math.max(10, betAmount - 10))}
                   style={{
-                    background: "#f44336",
+                    background: "#ff5050",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
                     padding: "8px 12px",
                     cursor: "pointer",
-                    minWidth: "50px" // Ensure consistent button size
+                    minWidth: "50px"
                   }}
                 >
                   -10
@@ -387,27 +671,29 @@ export default function Game1() {
                 <input
                   type="number"
                   value={betAmount}
-                  onChange={(e) => setBetAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                  onChange={(e) => setBetAmount(Math.max(0, Math.min(balance, parseInt(e.target.value) || 0)))}
                   style={{
                     flex: 1,
                     padding: "10px",
-                    border: "2px solid #ddd",
+                    border: "2px solid rgba(255, 255, 255, 0.2)",
                     borderRadius: "8px",
                     textAlign: "center",
                     fontSize: "16px",
-                    maxWidth: "calc(100% - 120px)" // Leave space for buttons
+                    maxWidth: "calc(100% - 120px)",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    color: "white"
                   }}
                 />
                 <button
                   onClick={() => setBetAmount(Math.min(balance, betAmount + 10))}
                   style={{
-                    background: "#4CAF50",
+                    background: "#00c851",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
                     padding: "8px 12px",
                     cursor: "pointer",
-                    minWidth: "50px" // Ensure consistent button size
+                    minWidth: "50px"
                   }}
                 >
                   +10
@@ -418,15 +704,16 @@ export default function Game1() {
                 display: "flex", 
                 gap: "8px", 
                 marginTop: "10px",
-                flexWrap: "wrap"
+                flexWrap: "wrap",
+                justifyContent: "center"
               }}>
-                {[25, 50, 100, 250].map(amount => (
+                {[25, 50, 100].map(amount => (
                   <button
                     key={amount}
                     onClick={() => setBetAmount(Math.min(balance, amount))}
                     style={{
-                      background: betAmount === amount ? "#2196F3" : "#eee",
-                      color: betAmount === amount ? "white" : "#333",
+                      background: betAmount === amount ? "#005aff" : "rgba(255, 255, 255, 0.1)",
+                      color: betAmount === amount ? "white" : "#e2e8f0",
                       border: "none",
                       borderRadius: "6px",
                       padding: "6px 12px",
@@ -440,83 +727,36 @@ export default function Game1() {
               </div>
             </div>
 
-            <div style={{
-              background: "rgba(103, 58, 183, 0.1)",
-              borderRadius: "10px",
-              padding: "20px" // Increased from 15px
-            }}>
-              <h4 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>🎯 Game Rules</h4>
-              <div style={{ fontSize: "15px", color: "#444", lineHeight: "1.6" }}> {/* Improved readability */}
-                <div style={{ marginBottom: "12px", padding: "8px", background: "rgba(33, 150, 243, 0.1)", borderRadius: "6px" }}>
-                  <span style={{ color: "#1976D2", fontWeight: "bold", fontSize: "16px" }}>Blue 🍀 (5 segments):</span>
-                  <br />
-                  <span style={{ color: "#555" }}>Choose blue to win when wheel lands on blue!</span>
-                </div>
-                <div style={{ marginBottom: "12px", padding: "8px", background: "rgba(117, 117, 117, 0.1)", borderRadius: "6px" }}>
-                  <span style={{ color: "#424242", fontWeight: "bold", fontSize: "16px" }}>White 💎 (5 segments):</span>
-                  <br />
-                  <span style={{ color: "#555" }}>Choose white to win when wheel lands on white!</span>
-                </div>
-                <div style={{ 
-                  marginTop: "15px", 
-                  fontSize: "14px", 
-                  background: "rgba(255, 193, 7, 0.15)", 
-                  padding: "12px", 
-                  borderRadius: "8px",
-                  border: "1px solid rgba(255, 193, 7, 0.3)"
-                }}>
-                  <div style={{ fontWeight: "bold", color: "#333", marginBottom: "8px" }}>Your Current Choice:</div>
-                  <div style={{ 
-                    color: selectedColor === "blue" ? "#1976D2" : "#424242", 
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                    marginBottom: "8px"
-                  }}>
-                    {selectedColor === "blue" ? "🍀 BLUE" : "💎 WHITE"}
-                  </div>
-                  <div style={{ color: "#555", fontSize: "13px" }}>
-                    Win if wheel lands on your chosen color! • 50/50 chance • 1:1 payout
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {lastResult && (
-              <div style={{
-                background: lastResult.win ? "rgba(33, 150, 243, 0.12)" : "rgba(244, 67, 54, 0.12)",
-                borderRadius: "12px",
-                padding: "15px",
-                textAlign: "center",
-                border: lastResult.win ? "2px solid #2196F3" : "2px solid #f44336",
-                marginBottom: "10px"
-              }}>
-                <div style={{ fontSize: "16px", color: "#555", marginBottom: "8px" }}>
-                  Last Result: {/* ← Change this text here */}
-                </div>
-                <div style={{ 
-                  color: lastResult.win ? "#1976D2" : "#f44336",
-                  fontWeight: "bold",
-                  fontSize: "18px"
-                }}>
-                  {lastResult.win ? "WIN" : "LOSE"} {lastResult.win ? "+" : "-"}{lastResult.amount} coins
-                  {/* ← You can also modify this text format */}
-                </div>
-              </div>
-            )}
-
             <button
               onClick={() => setBetAmount(balance)}
+              disabled={balance <= 0}
               style={{
-                background: "linear-gradient(45deg, #9C27B0, #673AB7)",
+                background: balance <= 0 ? "#6b7280" : "linear-gradient(135deg, rgba(113, 221, 255, 0.6) 0%, rgba(0, 144, 255, 0.7) 100%)",
                 color: "white",
                 border: "none",
                 borderRadius: "10px",
                 padding: "12px",
-                cursor: "pointer",
-                fontWeight: "bold"
+                cursor: balance <= 0 ? "not-allowed" : "pointer",
+                fontWeight: "bold",
+                opacity: balance <= 0 ? 0.5 : 1,
+                transition: "all 0.3s ease"
+              }}
+              onMouseEnter={(e) => {
+                if (balance > 0) {
+                  e.target.style.background = "linear-gradient(135deg, #71ddff 0%, #0090ff 100%)";
+                  e.target.style.transform = "scale(1.05)";
+                  e.target.style.boxShadow = "0 8px 20px rgba(113, 221, 255, 0.4)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (balance > 0) {
+                  e.target.style.background = "linear-gradient(135deg, rgba(113, 221, 255, 0.6) 0%, rgba(0, 144, 255, 0.7) 100%)";
+                  e.target.style.transform = "scale(1)";
+                  e.target.style.boxShadow = "none";
+                }
               }}
             >
-              🚀 ALL IN ({balance} coins)
+              🚀 ALL IN ({Math.floor(balance)} coins)
             </button>
           </div>
         </div>
