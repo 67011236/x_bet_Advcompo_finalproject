@@ -1,0 +1,20 @@
+# Game1 Database Requirements
+# รายการ Python packages ที่จำเป็นสำหรับระบบ Game1
+
+# Database drivers
+psycopg2-binary>=2.9.0  # PostgreSQL driver
+sqlalchemy>=1.4.0       # ORM
+
+# API testing
+requests>=2.28.0        # HTTP client for testing
+
+# FastAPI (should already be in main requirements.txt)
+fastapi>=0.68.0
+uvicorn>=0.15.0
+
+# For data handling
+python-decimal>=0.4.0
+
+# For development and testing
+pytest>=6.0.0
+pytest-asyncio>=0.18.0

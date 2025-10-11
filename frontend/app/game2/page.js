@@ -12,7 +12,7 @@ const CHOICES = {
 
 export default function Game2() {
   const [balance, setBalance] = useState(0);
-  const [betAmount, setBetAmount] = useState(1);
+  const [betAmount, setBetAmount] = useState(0);
   const [playerChoice, setPlayerChoice] = useState(null);
   const [botChoice, setBotChoice] = useState(null);
   const [gameResult, setGameResult] = useState(null);
@@ -45,7 +45,7 @@ export default function Game2() {
 
   const adjustBetAmount = (change) => {
     const newAmount = betAmount + change;
-    if (newAmount >= 1) {
+    if (newAmount >= 0) {
       setBetAmount(newAmount);
     }
   };
@@ -66,7 +66,7 @@ export default function Game2() {
   };
 
   const playGame = async () => {
-    if (!playerChoice || betAmount > balance) return;
+    if (!playerChoice || betAmount > balance || betAmount <= 0) return;
     
     setIsPlaying(true);
     setShowResult(false);
@@ -230,35 +230,61 @@ export default function Game2() {
         
         <div className="game-container">
           <div className="game-layout">
-            {/* Bot Section */}
-            <div className={`bot-section ${isPlaying ? "randomizing" : ""}`}>
-              <h2>BOT</h2>
-              <div className={`bot-choice ${isPlaying ? "randomizing" : ""}`}>
-                {botChoice && !isPlaying ? (
-                  <div className="choice-display">
-                    <span className="choice-emoji">{CHOICES[botChoice].emoji}</span>
-                    <span className="choice-name">{CHOICES[botChoice].name}</span>
-                  </div>
-                ) : isPlaying && botChoice ? (
-                  <div className="choice-display">
-                    <span className={`choice-emoji ${isPlaying ? "randomizing" : ""}`}>
-                      {CHOICES[botChoice].emoji}
-                    </span>
-                    <span className={`choice-name ${isPlaying ? "randomizing" : ""}`}>
-                      {CHOICES[botChoice].name}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="choice-placeholder">
-                    <span className="choice-emoji">
-                      {isPlaying ? "🎲" : "❓"}
-                    </span>
-                    <span className="choice-name">
-                      {isPlaying ? "Randomizing..." : "Waiting"}
-                    </span>
-                  </div>
-                )}
+            {/* Left Column: Bot Section + Recent Games */}
+            <div className="left-column">
+              {/* Bot Section */}
+              <div className={`bot-section ${isPlaying ? "randomizing" : ""}`}>
+                <h2>BOT</h2>
+                <div className={`bot-choice ${isPlaying ? "randomizing" : ""}`}>
+                  {botChoice && !isPlaying ? (
+                    <div className="choice-display">
+                      <span className="choice-emoji">{CHOICES[botChoice].emoji}</span>
+                      <span className="choice-name">{CHOICES[botChoice].name}</span>
+                    </div>
+                  ) : isPlaying && botChoice ? (
+                    <div className="choice-display">
+                      <span className={`choice-emoji ${isPlaying ? "randomizing" : ""}`}>
+                        {CHOICES[botChoice].emoji}
+                      </span>
+                      <span className={`choice-name ${isPlaying ? "randomizing" : ""}`}>
+                        {CHOICES[botChoice].name}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="choice-placeholder">
+                      <span className="choice-emoji">
+                        {isPlaying ? "🎲" : "❓"}
+                      </span>
+                      <span className="choice-name">
+                        {isPlaying ? "Randomizing..." : "Waiting"}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Game History */}
+              {gameHistory.length > 0 && (
+                <div className="game-history">
+                  <h3>Recent Games</h3>
+                  <div className="history-list">
+                    {gameHistory.map((game) => (
+                      <div key={game.id} className={`history-item ${game.result}`}>
+                        <div className="history-choices">
+                          <span>{CHOICES[game.playerChoice].emoji}</span>
+                          <span className="vs">vs</span>
+                          <span>{CHOICES[game.botChoice].emoji}</span>
+                        </div>
+                        <div className="history-result">
+                          {game.result === "win" ? `+${game.winAmount - game.betAmount}` : 
+                           game.result === "lose" ? `-${game.betAmount}` : "±0"} THB
+                        </div>
+                        <div className="history-time">{game.timestamp}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Game Controls */}
@@ -317,114 +343,181 @@ export default function Game2() {
 
             {/* Betting Section */}
             <div className="betting-section">
-              <div className="balance-display">
-                <h3>Balance</h3>
-                <div className="balance-amount">{balance.toFixed(2)} THB</div>
+              {/* Your Balance - Orange Box */}
+              <div style={{
+                background: "linear-gradient(135deg, #ff9233 0%, #ff7a00 100%)",
+                borderRadius: "15px",
+                padding: "15px",
+                textAlign: "center",
+                color: "white",
+                marginBottom: "20px",
+                boxShadow: "0 6px 20px rgba(255, 146, 51, 0.25)"
+              }}>
+                <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>Your Balance</div>
+                <div style={{ fontSize: "24px", fontWeight: "bold", letterSpacing: "0.5px" }}>💰 {Math.floor(balance)} coins</div>
               </div>
 
-              <div className="bet-controls">
-                <h3>Bet Amount</h3>
+              {/* Bet Amount */}
+              <div style={{ marginBottom: "20px" }}>
+                <h3 style={{ 
+                  color: "white", 
+                  fontSize: "16px", 
+                  fontWeight: "bold", 
+                  marginBottom: "15px",
+                  textAlign: "center"
+                }}>Bet Amount</h3>
                 
-                {/* Quick bet buttons */}
-                <div className="quick-bet-buttons">
-                  <button 
-                    className="quick-bet-btn" 
-                    onClick={() => adjustBetAmount(-100)}
-                    disabled={isPlaying || betAmount < 100}
-                  >
-                    -100
-                  </button>
-                  <button 
-                    className="quick-bet-btn" 
-                    onClick={() => adjustBetAmount(-25)}
-                    disabled={isPlaying || betAmount < 25}
-                  >
-                    -25
-                  </button>
-                  <button 
-                    className="quick-bet-btn" 
+                {/* Main bet control row */}
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%", marginBottom: "12px" }}>
+                  <button
                     onClick={() => adjustBetAmount(-10)}
                     disabled={isPlaying || betAmount < 10}
+                    style={{
+                      background: "#dc3545",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "10px 15px",
+                      cursor: isPlaying || betAmount < 10 ? "not-allowed" : "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      minWidth: "55px",
+                      boxShadow: "0 3px 8px rgba(220, 53, 69, 0.25)",
+                      transition: "all 0.3s ease",
+                      opacity: isPlaying || betAmount < 10 ? 0.5 : 1
+                    }}
                   >
                     -10
                   </button>
-                  <button 
-                    className="quick-bet-btn" 
-                    onClick={() => adjustBetAmount(10)}
-                    disabled={isPlaying}
-                  >
-                    +10
-                  </button>
-                  <button 
-                    className="quick-bet-btn" 
-                    onClick={() => adjustBetAmount(25)}
-                    disabled={isPlaying}
-                  >
-                    +25
-                  </button>
-                  <button 
-                    className="quick-bet-btn" 
-                    onClick={() => adjustBetAmount(100)}
-                    disabled={isPlaying}
-                  >
-                    +100
-                  </button>
-                </div>
-
-                <div className="bet-input-group">
+                  
                   <input
                     type="number"
                     value={betAmount}
                     onChange={(e) => {
-                      const value = Math.max(1, parseInt(e.target.value) || 1);
-                      setBetAmount(value);
+                      const value = parseInt(e.target.value) || 0;
+                      if (value >= 0 && value <= balance) {
+                        setBetAmount(value);
+                      }
                     }}
-                    className="bet-input"
-                    min="1"
                     disabled={isPlaying}
+                    min="0"
+                    max={balance}
+                    style={{
+                      flex: 1,
+                      padding: "10px 15px",
+                      background: "rgba(255, 255, 255, 0.1)",
+                      borderRadius: "10px",
+                      textAlign: "center",
+                      fontSize: "18px",
+                      fontWeight: "bold",
+                      color: "white",
+                      border: "2px solid rgba(255, 255, 255, 0.2)",
+                      minHeight: "40px",
+                      outline: "none",
+                      cursor: isPlaying ? "not-allowed" : "text",
+                      opacity: isPlaying ? 0.5 : 1,
+                      transition: "all 0.3s ease"
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.border = "2px solid #007bff";
+                      e.target.style.background = "rgba(255, 255, 255, 0.15)";
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.border = "2px solid rgba(255, 255, 255, 0.2)";
+                      e.target.style.background = "rgba(255, 255, 255, 0.1)";
+                    }}
                   />
-                  <button 
-                    className="all-in-btn" 
-                    onClick={setBetToAllIn}
+                  
+                  <button
+                    onClick={() => adjustBetAmount(10)}
                     disabled={isPlaying}
+                    style={{
+                      background: "#28a745",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "10px 15px",
+                      cursor: isPlaying ? "not-allowed" : "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      minWidth: "55px",
+                      boxShadow: "0 3px 8px rgba(40, 167, 69, 0.25)",
+                      transition: "all 0.3s ease",
+                      opacity: isPlaying ? 0.5 : 1
+                    }}
                   >
-                    All In
+                    +10
                   </button>
                 </div>
                 
-                <button
-                  className={`place-bet-btn ${!playerChoice || isPlaying || betAmount < 1 ? "disabled" : ""}`}
-                  onClick={playGame}
-                  disabled={!playerChoice || isPlaying || betAmount < 1}
-                >
-                  {isPlaying ? "Playing..." : "Place Bet"}
-                </button>
+                {/* Preset buttons */}
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: "8px", 
+                  marginBottom: "15px"
+                }}>
+                  {[25, 50, 100].map(amount => (
+                    <button
+                      key={amount}
+                      onClick={() => setBetAmount(amount)}
+                      disabled={isPlaying}
+                      style={{
+                        background: betAmount === amount ? "#007bff" : "rgba(255, 255, 255, 0.15)",
+                        color: "white",
+                        border: betAmount === amount ? "2px solid #0056b3" : "2px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "8px",
+                        padding: "8px 12px",
+                        cursor: isPlaying ? "not-allowed" : "pointer",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        transition: "all 0.3s ease",
+                        boxShadow: betAmount === amount ? "0 3px 8px rgba(0, 123, 255, 0.25)" : "0 2px 6px rgba(0, 0, 0, 0.1)",
+                        opacity: isPlaying ? 0.5 : 1
+                      }}
+                    >
+                      {amount}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* ALL IN Button */}
+              <button
+                onClick={setBetToAllIn}
+                disabled={isPlaying || balance <= 0}
+                style={{
+                  background: isPlaying || balance <= 0 ? "#6b7280" : "linear-gradient(135deg, #17a2b8 0%, #138496 100%)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "12px 20px",
+                  cursor: isPlaying || balance <= 0 ? "not-allowed" : "pointer",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  width: "100%",
+                  opacity: isPlaying || balance <= 0 ? 0.5 : 1,
+                  transition: "all 0.3s ease",
+                  boxShadow: balance > 0 && !isPlaying ? "0 4px 15px rgba(23, 162, 184, 0.25)" : "none",
+                  letterSpacing: "0.5px",
+                  marginBottom: "15px"
+                }}
+              >
+                🚀 ALL IN ({Math.floor(balance)} coins)
+              </button>
+              
+              {/* Place Bet Button */}
+              <button
+                className={`place-bet-btn ${!playerChoice || isPlaying || betAmount <= 0 ? "disabled" : ""}`}
+                onClick={playGame}
+                disabled={!playerChoice || isPlaying || betAmount <= 0}
+              >
+                {isPlaying ? "Playing..." : "Place Bet"}
+              </button>
             </div>
           </div>
 
-          {/* Game History */}
-          {gameHistory.length > 0 && (
-            <div className="game-history">
-              <h3>Recent Games</h3>
-              <div className="history-list">
-                {gameHistory.map((game) => (
-                  <div key={game.id} className={`history-item ${game.result}`}>
-                    <div className="history-choices">
-                      <span>{CHOICES[game.playerChoice].emoji}</span>
-                      <span className="vs">vs</span>
-                      <span>{CHOICES[game.botChoice].emoji}</span>
-                    </div>
-                    <div className="history-result">
-                      {game.result === "win" ? `+${game.winAmount - game.betAmount}` : 
-                       game.result === "lose" ? `-${game.betAmount}` : "±0"} THB
-                    </div>
-                    <div className="history-time">{game.timestamp}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Randomization Popup */}
@@ -461,18 +554,6 @@ export default function Game2() {
                   </div>
                   
                   <div className="choices-comparison">
-                    <div className="player-result">
-                      <div className="choice-label">You</div>
-                      <div className="choice-big-emoji">
-                        {finalResultData ? CHOICES[finalResultData.playerChoice].emoji : ""}
-                      </div>
-                      <div className="choice-name-big">
-                        {finalResultData ? CHOICES[finalResultData.playerChoice].name : ""}
-                      </div>
-                    </div>
-                    
-                    <div className="vs-divider">VS</div>
-                    
                     <div className="bot-result">
                       <div className="choice-label">Bot</div>
                       <div className="choice-big-emoji">
@@ -480,6 +561,18 @@ export default function Game2() {
                       </div>
                       <div className="choice-name-big">
                         {finalResultData ? CHOICES[finalResultData.botChoice].name : ""}
+                      </div>
+                    </div>
+                    
+                    <div className="vs-divider">VS</div>
+                    
+                    <div className="player-result">
+                      <div className="choice-label">You</div>
+                      <div className="choice-big-emoji">
+                        {finalResultData ? CHOICES[finalResultData.playerChoice].emoji : ""}
+                      </div>
+                      <div className="choice-name-big">
+                        {finalResultData ? CHOICES[finalResultData.playerChoice].name : ""}
                       </div>
                     </div>
                   </div>

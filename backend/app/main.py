@@ -527,3 +527,296 @@ async def record_game1_play(payload: Game1PlayPayload, request: Request, db: Ses
         print(f"❌ Error recording game1 play: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to record game play")
+
+# ===============================
+# Game1 Enhanced APIs (ใหม่)
+# ===============================
+
+class Game1BetPayload(BaseModel):
+    bet_amount: float
+    selected_color: str  # "blue" หรือ "white"
+    result_color: str = None  # ผลลัพธ์จากล้อ Frontend (optional เผื่อใช้ fallback)
+
+class Game1HistoryParams(BaseModel):
+    limit: int = 20
+    offset: int = 0
+
+@app.post("/api/game1/play")
+async def play_game1(payload: Game1BetPayload, request: Request, db: Session = Depends(get_db)):
+    """
+    เล่น Game1 - วงล้อสี (API ใหม่ที่สมบูรณ์)
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # หา user จาก email
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate input
+    if payload.selected_color not in ["blue", "white"]:
+        raise HTTPException(status_code=400, detail="Selected color must be 'blue' or 'white'")
+    
+    if payload.bet_amount <= 0:
+        raise HTTPException(status_code=400, detail="Bet amount must be positive")
+    
+    try:
+        # ตรวจสอบยอดเงิน
+        credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+        if not credit or float(credit.balance) < payload.bet_amount:
+            raise HTTPException(status_code=400, detail="Insufficient balance")
+        
+        current_balance = float(credit.balance)
+        
+        # ใช้ผลลัพธ์จาก Frontend หรือสุ่มใหม่ถ้าไม่ได้ส่งมา
+        if payload.result_color and payload.result_color in ['blue', 'white']:
+            result_color = payload.result_color
+        else:
+            # Fallback: สุ่มผลลัพธ์ (50% โอกาสแต่ละสี)
+            import random
+            result_color = random.choice(['blue', 'white'])
+        
+        won = 1 if payload.selected_color == result_color else 0
+        
+        # คำนวณจำนวนเงินที่ชนะ/แพ้
+        if won:
+            win_loss_amount = payload.bet_amount  # ชนะได้เท่าที่เดิมพัน
+            new_balance = current_balance + payload.bet_amount
+        else:
+            win_loss_amount = -payload.bet_amount  # แพ้เสียเท่าที่เดิมพัน
+            new_balance = current_balance - payload.bet_amount
+        
+        # อัพเดทยอดเงินในตาราง credit
+        credit.balance = Decimal(str(new_balance))
+        credit.updated_at = func.now()  # อัพเดทเวลา
+        
+        # บันทึกผลการเล่น
+        game1_play = Game1(
+            user_id=user.id,  # ใช้ user.id แทน email
+            bet_amount=Decimal(str(payload.bet_amount)),
+            selected_color=payload.selected_color,
+            result_color=result_color,
+            won=won,
+            win_loss_amount=Decimal(str(win_loss_amount)),
+            balance_before=Decimal(str(current_balance)),
+            balance_after=Decimal(str(new_balance))
+        )
+        
+        # เพิ่มทั้ง credit และ game1_play ในครั้งเดียว
+        db.add(credit)  # อัพเดท credit balance
+        db.add(game1_play)  # เพิ่มการเล่นใหม่
+        db.commit()  # commit ทั้งสองอย่างพร้อมกัน
+        db.refresh(game1_play)
+        db.refresh(credit)  # refresh credit เพื่อให้แน่ใจว่าอัพเดทแล้ว
+        
+        print(f"🎮 Game1 played: {email} bet {payload.bet_amount} on {payload.selected_color}, result: {result_color}, {'WON' if won else 'LOST'}")
+        print(f"💰 Balance updated in DB: {current_balance} → {float(credit.balance)} (user_id: {user.id})")
+        print(f"📊 Game recorded in DB with ID: {game1_play.id}")
+        
+        return {
+            "success": True,
+            "result": {
+                "game_id": game1_play.id,
+                "selected_color": payload.selected_color,
+                "result_color": result_color,
+                "won": bool(won),
+                "bet_amount": payload.bet_amount,
+                "win_loss_amount": float(win_loss_amount),
+                "balance_before": current_balance,
+                "balance_after": new_balance,
+                "message": "" if won else ""
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error in game1 play: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to process game")
+
+@app.get("/api/game1/history")
+async def get_game1_history(request: Request, limit: int = 20, offset: int = 0, db: Session = Depends(get_db)):
+    """
+    ดึงประวัติการเล่น Game1 ของผู้ใช้
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # หา user จาก email
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        # ดึงประวัติการเล่น
+        games = db.query(Game1).filter(Game1.user_id == user.id)\
+                              .order_by(Game1.played_at.desc())\
+                              .offset(offset)\
+                              .limit(limit)\
+                              .all()
+        
+        history = []
+        for game in games:
+            history.append({
+                "id": game.id,
+                "bet_amount": float(game.bet_amount),
+                "selected_color": game.selected_color,
+                "result_color": game.result_color,
+                "won": bool(game.won),
+                "win_loss_amount": float(game.win_loss_amount),
+                "balance_before": float(game.balance_before),
+                "balance_after": float(game.balance_after),
+                "played_at": game.played_at.isoformat()
+            })
+        
+        return {
+            "success": True,
+            "history": history,
+            "total_records": len(history)
+        }
+        
+    except Exception as e:
+        print(f"❌ Error fetching game1 history: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch history")
+
+@app.get("/api/game1/stats")
+async def get_game1_stats(request: Request, db: Session = Depends(get_db)):
+    """
+    ดึงสถิติการเล่น Game1 ของผู้ใช้
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # หา user จาก email
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        # ใช้ raw SQL เพื่อคำนวณสถิติ
+        from sqlalchemy import text
+        
+        stats_query = text("""
+            SELECT 
+                COUNT(*) as total_games,
+                COUNT(CASE WHEN won = 1 THEN 1 END) as total_wins,
+                COUNT(CASE WHEN won = 0 THEN 1 END) as total_losses,
+                COALESCE(SUM(bet_amount), 0) as total_bet_amount,
+                COALESCE(SUM(CASE WHEN won = 1 THEN win_loss_amount ELSE 0 END), 0) as total_win_amount,
+                COALESCE(SUM(CASE WHEN won = 0 THEN ABS(win_loss_amount) ELSE 0 END), 0) as total_loss_amount,
+                COALESCE(SUM(win_loss_amount), 0) as net_profit_loss,
+                MIN(played_at) as first_played_at,
+                MAX(played_at) as last_played_at
+            FROM game1 
+            WHERE user_id = :user_id
+        """)
+        
+        result = db.execute(stats_query, {"user_id": user.id}).fetchone()
+        
+        if not result or result[0] == 0:
+            # ยังไม่เคยเล่น
+            return {
+                "success": True,
+                "stats": {
+                    "total_games": 0,
+                    "total_wins": 0,
+                    "total_losses": 0,
+                    "total_bet_amount": 0.0,
+                    "total_win_amount": 0.0,
+                    "total_loss_amount": 0.0,
+                    "net_profit_loss": 0.0,
+                    "win_percentage": 0.0,
+                    "first_played_at": None,
+                    "last_played_at": None
+                }
+            }
+        
+        total_games = result[0]
+        total_wins = result[1]
+        win_percentage = (total_wins / total_games * 100) if total_games > 0 else 0
+        
+        return {
+            "success": True,
+            "stats": {
+                "total_games": total_games,
+                "total_wins": total_wins,
+                "total_losses": result[2],
+                "total_bet_amount": float(result[3]),
+                "total_win_amount": float(result[4]),
+                "total_loss_amount": float(result[5]),
+                "net_profit_loss": float(result[6]),
+                "win_percentage": round(win_percentage, 2),
+                "first_played_at": result[7].isoformat() if result[7] else None,
+                "last_played_at": result[8].isoformat() if result[8] else None
+            }
+        }
+        
+    except Exception as e:
+        print(f"❌ Error fetching game1 stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch stats")
+
+# Admin API สำหรับดูสถิติทุกคน
+@app.get("/api/admin/game1/all-stats")
+async def get_all_users_game1_stats(request: Request, db: Session = Depends(get_db)):
+    """
+    ดึงสถิติการเล่น Game1 ของผู้ใช้ทุกคน (Admin เท่านั้น)
+    """
+    must_admin(request)
+    
+    try:
+        from sqlalchemy import text
+        
+        all_stats_query = text("""
+            SELECT 
+                u.id,
+                u.full_name,
+                u.email,
+                COUNT(g.id) as total_games,
+                COUNT(CASE WHEN g.won = 1 THEN 1 END) as total_wins,
+                COALESCE(SUM(g.bet_amount), 0) as total_bet_amount,
+                COALESCE(SUM(g.win_loss_amount), 0) as net_profit_loss,
+                MAX(g.played_at) as last_played_at
+            FROM users u
+            LEFT JOIN game1 g ON u.id = g.user_id
+            WHERE u.role = 'user'
+            GROUP BY u.id, u.full_name, u.email
+            HAVING COUNT(g.id) > 0
+            ORDER BY total_games DESC, net_profit_loss DESC
+            LIMIT 100
+        """)
+        
+        results = db.execute(all_stats_query).fetchall()
+        
+        all_stats = []
+        for result in results:
+            total_games = result[3]
+            total_wins = result[4]
+            win_percentage = (total_wins / total_games * 100) if total_games > 0 else 0
+            
+            all_stats.append({
+                "user_id": result[0],
+                "full_name": result[1],
+                "email": result[2],
+                "total_games": total_games,
+                "total_wins": total_wins,
+                "total_losses": total_games - total_wins,
+                "total_bet_amount": float(result[5]),
+                "net_profit_loss": float(result[6]),
+                "win_percentage": round(win_percentage, 2),
+                "last_played_at": result[7].isoformat() if result[7] else None
+            })
+        
+        return {
+            "success": True,
+            "all_stats": all_stats,
+            "total_users": len(all_stats)
+        }
+        
+    except Exception as e:
+        print(f"❌ Error fetching all users game1 stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch all stats")

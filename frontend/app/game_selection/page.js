@@ -55,7 +55,7 @@ export default function GameSelection() {
                 <h3>Description</h3>
                 <ul>
                   <li>One spin, total payout up to 2x your stake</li>
-                  <li>Fast, concise, transparent — Blue pays 2x, White loses stake</li>
+                  <li>Fast and fair — pick Blue or White, win 2x if it lands on your color.</li>
                 </ul>
               </div>
               <Link href="/game1">

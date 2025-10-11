@@ -108,13 +108,18 @@ class Game1(Base):
     __tablename__ = "game1"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String(50), nullable=False)  # อาจเป็น email หรือ ID อื่น
-    bet_amount = Column(Integer, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Foreign key ไปยัง users table
+    bet_amount = Column(Numeric(10, 2), nullable=False)  # ใช้ Numeric สำหรับเงิน
     selected_color = Column(String(10), nullable=False)  # "blue" หรือ "white"
     result_color = Column(String(10), nullable=False)   # ผลลัพธ์จากล้อ
     won = Column(Integer, nullable=False)               # 1 = ชนะ, 0 = แพ้
-    payout_amount = Column(Integer, nullable=False)     # จำนวนเงินที่ได้/เสีย
+    win_loss_amount = Column(Numeric(10, 2), nullable=False)  # จำนวนที่ชนะ/แพ้ (+100, -100)
+    balance_before = Column(Numeric(10, 2), nullable=False)   # ยอดเงินก่อนเล่น
+    balance_after = Column(Numeric(10, 2), nullable=False)    # ยอดเงินหลังเล่น
     played_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    # Relationship
+    user = relationship("User", backref="game1_plays")
 
     __table_args__ = (
         CheckConstraint("selected_color IN ('blue','white')", name="selected_color_allowed"),
@@ -122,6 +127,29 @@ class Game1(Base):
         CheckConstraint("won IN (0,1)", name="won_boolean"),
         CheckConstraint("bet_amount > 0", name="bet_amount_positive"),
     )
+
+# ===============================
+# Game1 Statistics ORM model (จำนวนครั้งที่เล่น)
+# ===============================
+class Game1Stats(Base):
+    __tablename__ = "game1_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    total_games_played = Column(Integer, nullable=False, default=0)  # จำนวนเกมที่เล่นทั้งหมด
+    total_wins = Column(Integer, nullable=False, default=0)          # จำนวนครั้งที่ชนะ
+    total_losses = Column(Integer, nullable=False, default=0)        # จำนวนครั้งที่แพ้
+    total_bet_amount = Column(Numeric(15, 2), nullable=False, default=0.00)    # ยอดเดิมพันรวม
+    total_win_amount = Column(Numeric(15, 2), nullable=False, default=0.00)    # ยอดเงินที่ชนะรวม
+    total_loss_amount = Column(Numeric(15, 2), nullable=False, default=0.00)   # ยอดเงินที่แพ้รวม
+    net_profit_loss = Column(Numeric(15, 2), nullable=False, default=0.00)     # กำไร/ขาดทุนสุทธิ
+    first_played_at = Column(DateTime, nullable=True)               # วันที่เล่นครั้งแรก
+    last_played_at = Column(DateTime, nullable=True)                # วันที่เล่นครั้งล่าสุด
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship
+    user = relationship("User", backref="game1_stats")
 
 # ===============================
 # Create DB

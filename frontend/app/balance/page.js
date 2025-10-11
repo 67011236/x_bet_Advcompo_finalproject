@@ -49,13 +49,65 @@ export default function BalancePage() {
     button.classList.remove('wave-active');
   };
 
-  // Fetch balance when component mounts
+  // Fetch balance when component mounts and when page becomes visible
   useEffect(() => {
     fetchBalance();
+    
+    // Refresh balance when user comes back to this page
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("🔄 Page became visible, refreshing balance...");
+        fetchBalance();
+      }
+    };
+    
+    const handleFocus = () => {
+      console.log("🔄 Window focused, refreshing balance...");
+      fetchBalance();
+    };
+    
+    // Listen for balance updates from other pages (e.g., Game1)
+    const handleBalanceUpdate = (event) => {
+      console.log("🔔 Received balance update notification:", event.detail);
+      fetchBalance();
+    };
+    
+    const handleStorageChange = (event) => {
+      if (event.key === 'balance_updated') {
+        console.log("🔔 LocalStorage balance update detected");
+        fetchBalance();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('balanceUpdated', handleBalanceUpdate);
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Auto refresh balance every 3 seconds when page is visible
+    const intervalId = setInterval(() => {
+      if (!document.hidden) {
+        console.log("🔄 Auto-refreshing balance...");
+        fetchBalance();
+      }
+    }, 3000);
+    
+    // Cleanup listeners and interval
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('balanceUpdated', handleBalanceUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
+    };
   }, []);
 
-  const fetchBalance = async () => {
+  const fetchBalance = async (showLoadingIndicator = false) => {
     try {
+      if (showLoadingIndicator) {
+        setBalanceLoading(true);
+      }
+      
       const response = await fetch("http://localhost:8000/balance", {
         method: "GET",
         credentials: "include",
@@ -63,7 +115,21 @@ export default function BalancePage() {
 
       if (response.ok) {
         const data = await response.json();
-        setBalance(data.amount.toFixed(2));
+        const newBalance = data.amount.toFixed(2);
+        
+        // Show notification if balance changed significantly
+        if (parseFloat(newBalance) !== parseFloat(balance) && !balanceLoading) {
+          const diff = parseFloat(newBalance) - parseFloat(balance);
+          if (Math.abs(diff) > 0.01) {
+            const message = diff > 0 ? 
+              `💰 Balance increased by ${diff.toFixed(2)} ${currency}` : 
+              `💸 Balance decreased by ${Math.abs(diff).toFixed(2)} ${currency}`;
+            showNotification(message, diff > 0 ? 'success' : 'info');
+          }
+        }
+        
+        setBalance(newBalance);
+        console.log(`💰 Balance fetched: ${newBalance} ${currency} (${data.last_updated})`);
       } else {
         console.error("Failed to fetch balance");
       }
