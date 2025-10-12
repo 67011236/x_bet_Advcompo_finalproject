@@ -124,6 +124,32 @@
 
 .donut-chart {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+}
+
+.total-plays {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #71ddff;
+  margin-bottom: 2px;
+}
+
+.plays-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .chart-legend {
@@ -178,7 +204,7 @@
   align-items: end;
   justify-content: space-around;
   height: 200px;
-  gap: 10px;
+  gap: 8px; /* ลดขนาด gap เพื่อรองรับ 6 แท่ง */
 }
 
 .bar-container {
@@ -186,26 +212,68 @@
   flex-direction: column;
   align-items: center;
   height: 100%;
+  min-width: 0; /* ป้องกันการ overflow */
+  flex: 1; /* แบ่งพื้นที่เท่าๆ กัน */
+  justify-content: flex-end; /* จัดให้ labels อยู่ด้านล่างเท่ากัน */
 }
 
 .bar {
-  width: 40px;
-  background: linear-gradient(to top, #4a9eff, #71ddff);
+  width: 35px; /* ลดขนาดแท่งเล็กน้อย */
+  background: linear-gradient(to top, #4a9eff, #71ddff); /* สีเดียวกับ Technical Issue */
   border-radius: 6px 6px 0 0;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(74, 158, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(113, 221, 255, 0.3); /* เงาสีฟ้าเหมือน Technical */
+  min-height: 10px; /* ความสูงขั้นต่ำ */
 }
 
 .bar:hover {
-  background: linear-gradient(to top, #71ddff, #4a9eff);
-  transform: scaleY(1.1);
+  background: linear-gradient(to top, #71ddff, #4a9eff); /* สลับ gradient เมื่อ hover */
+  transform: scaleY(1.05) scaleX(1.1);
+  box-shadow: 0 6px 20px rgba(113, 221, 255, 0.4); /* เงาสีฟ้าเข้มขึ้นเมื่อ hover */
 }
 
 .bar-label {
-  font-size: 0.9rem;
+  font-size: 0.75rem; /* ลดขนาดฟอนต์เล็กน้อย */
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
+  text-align: center;
+  word-break: break-word; /* ป้องกันข้อความยาวเกินไป */
+  line-height: 1.2;
+}
+
+.bar-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+  min-height: 50px; /* กำหนดความสูงขั้นต่ำเพื่อให้ labels อยู่ในระนาบเดียวกัน */
+}
+
+.bar-count {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-data-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+.no-data-message p {
+  margin: 0;
+  text-align: center;
 }
 
 /* Real time activities */
@@ -216,6 +284,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  height: 400px; /* กำหนดความสูงคงที่ */
+  display: flex;
+  flex-direction: column;
 }
 
 .realtime-card h3 {
@@ -229,6 +300,31 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto; /* เพิ่ม vertical scrollbar */
+  flex: 1; /* ใช้พื้นที่ที่เหลือทั้งหมด */
+  padding-right: 5px; /* เว้นพื้นที่สำหรับ scrollbar */
+  max-height: 320px; /* กำหนดความสูงสูงสุด */
+  scroll-behavior: smooth; /* เพิ่ม smooth scrolling */
+}
+
+/* Custom Scrollbar Styling */
+.activity-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.activity-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.activity-list::-webkit-scrollbar-thumb {
+  background: rgba(71, 221, 255, 0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.activity-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 221, 255, 0.8);
 }
 
 .activity-item {
@@ -240,6 +336,18 @@
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease-out; /* เพิ่ม fade-in animation */
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .activity-item:hover {
@@ -305,5 +413,27 @@
   .chart-card-large,
   .realtime-card {
     padding: 20px;
+    height: 300px; /* ปรับความสูงสำหรับ mobile */
+  }
+
+  .activity-list {
+    max-height: 220px; /* ปรับความสูงสำหรับ mobile */
+  }
+
+  .bar-chart {
+    gap: 4px; /* ลด gap สำหรับหน้าจอเล็ก */
+  }
+
+  .bar {
+    width: 25px; /* ลดขนาดแท่งสำหรับ mobile */
+  }
+
+  .bar-label {
+    font-size: 0.65rem; /* ลดขนาดฟอนต์สำหรับ mobile */
+  }
+
+  .bar-count {
+    font-size: 0.7rem;
+    padding: 1px 4px;
   }
 }

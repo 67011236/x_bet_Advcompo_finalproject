@@ -152,6 +152,61 @@ class Game1Stats(Base):
     user = relationship("User", backref="game1_stats")
 
 # ===============================
+# Game2 ORM model (Rock Paper Scissors game play tracking)
+# ===============================
+class Game2(Base):
+    __tablename__ = "game2"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Foreign key ไปยัง users table
+    bet_amount = Column(Numeric(10, 2), nullable=False)  # จำนวนเงินที่เดิมพัน
+    player_choice = Column(String(10), nullable=False)  # "rock", "paper", "scissors"
+    bot_choice = Column(String(10), nullable=False)     # "rock", "paper", "scissors"
+    result = Column(String(10), nullable=False)         # "win", "lose", "tie"
+    win_loss_amount = Column(Numeric(10, 2), nullable=False)  # จำนวนที่ชนะ/แพ้ (+100, -100, 0)
+    balance_before = Column(Numeric(10, 2), nullable=False)   # ยอดเงินก่อนเล่น
+    balance_after = Column(Numeric(10, 2), nullable=False)    # ยอดเงินหลังเล่น
+    played_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    # Relationship
+    user = relationship("User", backref="game2_plays")
+
+    __table_args__ = (
+        CheckConstraint("player_choice IN ('rock','paper','scissors')", name="player_choice_allowed"),
+        CheckConstraint("bot_choice IN ('rock','paper','scissors')", name="bot_choice_allowed"),
+        CheckConstraint("result IN ('win','lose','tie')", name="result_allowed"),
+        CheckConstraint("bet_amount > 0", name="bet_amount_positive"),
+    )
+
+# ===============================
+# Game2 Statistics ORM model (จำนวนครั้งที่เล่น Rock Paper Scissors)
+# ===============================
+class Game2Stats(Base):
+    __tablename__ = "game2_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    total_games_played = Column(Integer, nullable=False, default=0)  # จำนวนเกมที่เล่นทั้งหมด
+    total_wins = Column(Integer, nullable=False, default=0)          # จำนวนครั้งที่ชนะ
+    total_losses = Column(Integer, nullable=False, default=0)        # จำนวนครั้งที่แพ้
+    total_ties = Column(Integer, nullable=False, default=0)          # จำนวนครั้งที่เสมอ
+    total_bet_amount = Column(Numeric(15, 2), nullable=False, default=0.00)    # ยอดเดิมพันรวม
+    total_win_amount = Column(Numeric(15, 2), nullable=False, default=0.00)    # ยอดเงินที่ชนะรวม
+    total_loss_amount = Column(Numeric(15, 2), nullable=False, default=0.00)   # ยอดเงินที่แพ้รวม
+    net_profit_loss = Column(Numeric(15, 2), nullable=False, default=0.00)     # กำไร/ขาดทุนสุทธิ
+    # สถิติตามตัวเลือก
+    rock_played = Column(Integer, nullable=False, default=0)         # จำนวนครั้งที่เลือก Rock
+    paper_played = Column(Integer, nullable=False, default=0)        # จำนวนครั้งที่เลือก Paper
+    scissors_played = Column(Integer, nullable=False, default=0)     # จำนวนครั้งที่เลือก Scissors
+    first_played_at = Column(DateTime, nullable=True)               # วันที่เล่นครั้งแรก
+    last_played_at = Column(DateTime, nullable=True)                # วันที่เล่นครั้งล่าสุด
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship
+    user = relationship("User", backref="game2_stats")
+
+# ===============================
 # Create DB
 # ===============================
 def create_db():

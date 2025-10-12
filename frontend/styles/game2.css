@@ -38,20 +38,26 @@
 
 /* Bot Section */
 .bot-section {
-  background: rgba(30, 42, 74, 0.85);
+  background: rgba(15, 25, 45, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 30px 20px;
   text-align: center;
-  border: 2px solid rgba(74, 144, 226, 0.3);
+  border: 2px solid rgba(74, 144, 226, 0.4);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 20px rgba(74, 144, 226, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(74, 144, 226, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 300px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+}
+
+.bot-section:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(74, 144, 226, 0.3);
+  border-color: rgba(74, 144, 226, 0.6);
 }
 
 .bot-section::before {
@@ -93,7 +99,7 @@
 }
 
 .bot-choice {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(20, 30, 50, 0.8);
   border-radius: 12px;
   padding: 40px 20px;
   min-height: 150px;
@@ -101,13 +107,20 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   position: relative;
+  transition: all 0.3s ease;
+}
+
+.bot-choice:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  border-color: rgba(74, 144, 226, 0.5);
 }
 
 .bot-choice.randomizing {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(74, 144, 226, 0.4);
+  background: rgba(35, 50, 80, 0.9);
+  border-color: rgba(74, 144, 226, 0.6);
   animation: choiceRandomize 0.15s ease-in-out infinite;
 }
 
@@ -211,11 +224,11 @@
 }
 
 .randomization-content {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: linear-gradient(135deg, #0f1929, #1a2c54);
   border-radius: 20px;
   padding: 40px;
   text-align: center;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(74, 144, 226, 0.4);
   max-width: 400px;
   animation: popIn 0.5s ease-out;
 }
@@ -322,9 +335,9 @@
   align-items: center;
   margin-bottom: 25px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(15, 25, 45, 0.8);
   border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.3);
   min-width: 0;
 }
 
@@ -410,7 +423,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(20, 35, 60, 0.6);
   animation: vsRotate 1s ease-in-out;
 }
 
@@ -430,11 +443,11 @@
 }
 
 .result-summary {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(15, 25, 45, 0.8);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
 .bet-info, .balance-change, .new-balance {
@@ -487,7 +500,7 @@
   font-size: 1rem;
   font-style: italic;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(20, 35, 60, 0.7);
   border-radius: 8px;
   border-left: 4px solid #4a90e2;
   animation: fadeInUp 1s ease-out;
@@ -565,9 +578,9 @@
 }
 
 .choice-button {
-  background: rgba(30, 42, 74, 0.8);
+  background: rgba(15, 25, 45, 0.9);
   backdrop-filter: blur(15px);
-  border: 2px solid rgba(74, 144, 226, 0.4);
+  border: 2px solid rgba(74, 144, 226, 0.5);
   border-radius: 18px;
   padding: 25px 15px;
   cursor: pointer;
@@ -581,7 +594,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 0 15px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(74, 144, 226, 0.15);
 }
 
 .choice-button::before {
@@ -600,10 +613,10 @@
 }
 
 .choice-button:hover:not(.disabled) {
-  background: rgba(74, 144, 226, 0.4);
-  border-color: rgba(74, 144, 226, 0.7);
-  transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(74, 144, 226, 0.3);
+  background: rgba(74, 144, 226, 0.5);
+  border-color: rgba(74, 144, 226, 0.8);
+  transform: translateY(-10px) scale(1.08);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(74, 144, 226, 0.4);
 }
 
 .choice-button.selected {
@@ -651,11 +664,18 @@
 
 /* Game Rules Section */
 .game-rules {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(10, 20, 35, 0.85);
   border-radius: 12px;
   padding: 20px;
   margin-top: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  transition: all 0.3s ease;
+}
+
+.game-rules:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  border-color: rgba(74, 144, 226, 0.5);
 }
 
 .game-rules h4 {
@@ -679,14 +699,14 @@
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(20, 35, 60, 0.7);
   border-radius: 8px;
-  border-left: 3px solid rgba(74, 144, 226, 0.6);
+  border-left: 3px solid rgba(74, 144, 226, 0.7);
   transition: all 0.3s ease;
 }
 
 .rule-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(35, 50, 85, 0.8);
   border-left-color: #4a90e2;
   transform: translateX(2px);
 }
@@ -781,28 +801,42 @@
 
 /* Betting Section */
 .betting-section {
-  background: rgba(30, 42, 74, 0.85);
+  background: rgba(15, 25, 45, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 16px;
-  border: 2px solid rgba(74, 144, 226, 0.3);
+  border: 2px solid rgba(74, 144, 226, 0.4);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), 0 0 15px rgba(74, 144, 226, 0.08);
-  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(74, 144, 226, 0.12);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 400px;
   justify-content: flex-start;
   width: 280px;
   max-width: 280px;
 }
 
+.betting-section:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.6);
+}
+
 .balance-display {
   text-align: center;
-  background: rgba(74, 144, 226, 0.2);
+  background: rgba(50, 80, 140, 0.4);
   border-radius: 12px;
   padding: 20px;
-  border: 2px solid rgba(74, 144, 226, 0.3);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  transition: all 0.3s ease;
+}
+
+.balance-display:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.4);
+  border-color: rgba(74, 144, 226, 0.8);
+  background: rgba(60, 90, 150, 0.5);
 }
 
 .balance-display h3 {
@@ -838,8 +872,8 @@
 }
 
 .quick-bet-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(20, 35, 60, 0.8);
+  border: 2px solid rgba(74, 144, 226, 0.4);
   color: white;
   padding: 8px 4px;
   border-radius: 6px;
@@ -851,9 +885,10 @@
 }
 
 .quick-bet-btn:hover:not(:disabled) {
-  background: rgba(74, 144, 226, 0.3);
+  background: rgba(74, 144, 226, 0.4);
   border-color: #4a90e2;
-  transform: translateY(-1px);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
 }
 
 .quick-bet-btn:disabled {
@@ -885,8 +920,8 @@
 
 .all-in-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #c0392b, #a93226);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(231, 76, 60, 0.5);
 }
 
 .all-in-btn:disabled {
@@ -895,8 +930,8 @@
 }
 
 .bet-input {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(20, 35, 60, 0.8);
+  border: 2px solid rgba(74, 144, 226, 0.4);
   color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -904,6 +939,13 @@
   text-align: center;
   font-size: 1.1rem;
   font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.bet-input:hover {
+  transform: translateY(-2px) scale(1.05);
+  border-color: rgba(74, 144, 226, 0.6);
+  box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
 .bet-input:focus {
@@ -960,7 +1002,7 @@
 }
 
 .place-bet-btn.disabled {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(20, 35, 60, 0.6);
   color: rgba(255, 255, 255, 0.4);
   cursor: not-allowed;
   box-shadow: none;
@@ -969,12 +1011,22 @@
 
 /* Game History */
 .game-history {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(10, 20, 35, 0.9);
   border-radius: 15px;
   padding: 25px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(74, 144, 226, 0.3);
   max-width: 600px;
   margin: 0 auto;
+  transition: all 0.3s ease;
+  height: 200px; /* ลดความสูงให้แสดงแค่ 2 รายการ */
+  display: flex;
+  flex-direction: column;
+}
+
+.game-history:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border-color: rgba(74, 144, 226, 0.5);
 }
 
 .game-history h3 {
@@ -989,31 +1041,78 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto; /* เพิ่ม vertical scrollbar */
+  flex: 1; /* ใช้พื้นที่ที่เหลือทั้งหมด */
+  padding-right: 8px; /* เว้นพื้นที่สำหรับ scrollbar */
+  max-height: 120px; /* ปรับให้แสดงประมาณ 2 รายการ (60px x 2) */
+  scroll-behavior: smooth; /* เพิ่ม smooth scrolling */
+}
+
+/* Custom Scrollbar Styling for Game History */
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: rgba(74, 144, 226, 0.1);
+  border-radius: 10px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(74, 144, 226, 0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 144, 226, 0.8);
 }
 
 .history-item {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
+  gap: 12px;
+  padding: 12px; /* ลดขนาด padding */
   border-radius: 8px;
   border: 1px solid;
+  transition: all 0.3s ease;
+  min-height: 50px; /* กำหนดความสูงขั้นต่ำ */
+}
+
+.history-item:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.history-item {
+  animation: slideInFromTop 0.4s ease-out; /* เพิ่ม slide-in animation */
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .history-item.win {
-  background: rgba(40, 167, 69, 0.1);
-  border-color: rgba(40, 167, 69, 0.3);
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.5);
 }
 
 .history-item.lose {
-  background: rgba(220, 53, 69, 0.1);
-  border-color: rgba(220, 53, 69, 0.3);
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
 }
 
 .history-item.tie {
-  background: rgba(255, 193, 7, 0.1);
-  border-color: rgba(255, 193, 7, 0.3);
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
 }
 
 .history-choices {
@@ -1104,6 +1203,21 @@
   .result-message {
     font-size: 1.3rem;
   }
+
+  .game-history {
+    height: 180px; /* ปรับสำหรับ mobile ให้แสดง 2 รายการ */
+    padding: 20px;
+  }
+
+  .history-list {
+    max-height: 100px; /* ปรับให้แสดง 2 รายการสำหรับ mobile */
+    gap: 8px;
+  }
+
+  .history-item {
+    padding: 12px;
+    gap: 10px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1191,6 +1305,24 @@
     height: 50px;
     font-size: 1.2rem;
     margin: 0 auto;
+  }
+
+  .game-history {
+    height: 160px; /* ปรับให้แสดง 2 รายการสำหรับ mobile เล็ก */
+    padding: 15px;
+  }
+
+  .history-list {
+    max-height: 85px; /* ปรับให้แสดง 2 รายการสำหรับ mobile เล็ก */
+  }
+
+  .history-item {
+    min-height: 35px; /* ปรับ min-height สำหรับ mobile เล็ก */
+    padding: 6px;
+  }
+
+  .history-list::-webkit-scrollbar {
+    width: 6px; /* ลดขนาด scrollbar สำหรับ mobile */
   }
 }
 

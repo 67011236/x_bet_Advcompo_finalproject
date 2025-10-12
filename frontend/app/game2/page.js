@@ -145,31 +145,33 @@ export default function Game2() {
         setFinalResultData(resultData);
         setShowFinalResult(true);
         
-        // Update balance via API
+        // Update balance via Game2 API
         (async () => {
           try {
-            if (result === "win") {
-              // Player wins - deposit winnings
-              await fetch("http://localhost:8000/deposit", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ amount: winAmount - betAmount })
-              });
-            } else if (result === "lose") {
-              // Player loses - withdraw bet amount
-              await fetch("http://localhost:8000/withdraw", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ amount: betAmount })
-              });
-            }
-            // For tie, no API call needed as balance doesn't change
+            const response = await fetch("http://localhost:8000/api/game2/play", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                bet_amount: betAmount,
+                player_choice: playerChoice,
+                bot_choice: botMove,
+                result: result
+              })
+            });
             
-            setBalance(newBalance);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success) {
+                // Update balance from API response
+                setBalance(data.result.balance_after);
+                console.log("Game2 result saved to database:", data.result);
+              }
+            } else {
+              console.error("Failed to save game result");
+            }
           } catch (error) {
-            console.error("Error updating balance:", error);
+            console.error("Error saving game result:", error);
           }
         })();
         

@@ -8,7 +8,7 @@ from sqlalchemy import func
 from decimal import Decimal
 
 # import ของคุณเอง
-from .models import SessionLocal, User, Credit, Report, Game1, create_db, ensure_admin
+from .models import SessionLocal, User, Credit, Report, Game1, Game2, Game2Stats, create_db, ensure_admin
 
 APP_NAME = os.getenv("APP_NAME", "MyApp")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@xbet.com").lower()
@@ -479,6 +479,205 @@ async def get_dashboard_stats(request: Request, db: Session = Depends(get_db)):
         print(f"❌ Error fetching dashboard stats: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.get("/api/game-stats")
+async def get_game_stats(request: Request, db: Session = Depends(get_db)):
+    """
+    Get game statistics for pie chart: Game1 (Premium Wheel) vs Game2 (Rock Paper Scissors)
+    """
+    try:
+        must_admin(request)  # Only admin can access game stats
+        print("📊 Admin accessing game stats API...")
+    except Exception as e:
+        print(f"❌ Authentication failed for game-stats: {e}")
+        raise
+    
+    try:
+        # Count total Game1 plays
+        game1_total = db.query(Game1).count()
+        
+        # Count total Game2 plays  
+        game2_total = db.query(Game2).count()
+        
+        # Calculate total plays
+        total_plays = game1_total + game2_total
+        
+        # Calculate percentages
+        if total_plays > 0:
+            game1_percentage = round((game1_total / total_plays) * 100, 1)
+            game2_percentage = round((game2_total / total_plays) * 100, 1)
+        else:
+            game1_percentage = 50.0
+            game2_percentage = 50.0
+        
+        # Get recent activities (last 10 games from both tables)
+        from sqlalchemy import text
+        
+        recent_activities_query = text("""
+            SELECT 
+                'game1' as game_type,
+                u.email,
+                g.win_loss_amount,
+                CASE WHEN g.won = 1 THEN 'win' ELSE 'lose' END as result,
+                g.played_at
+            FROM game1 g
+            JOIN users u ON g.user_id = u.id
+            UNION ALL
+            SELECT 
+                'game2' as game_type,
+                u.email,
+                g.win_loss_amount,
+                g.result,
+                g.played_at
+            FROM game2 g
+            JOIN users u ON g.user_id = u.id
+            ORDER BY played_at DESC
+            LIMIT 10
+        """)
+        
+        recent_results = db.execute(recent_activities_query).fetchall()
+        
+        activities = []
+        for result in recent_results:
+            # Calculate time ago
+            from datetime import datetime, timedelta
+            played_time = result[4]  # played_at
+            time_diff = datetime.utcnow() - played_time
+            
+            if time_diff.days > 0:
+                time_ago = f"{time_diff.days}d ago"
+            elif time_diff.seconds > 3600:
+                hours = time_diff.seconds // 3600
+                time_ago = f"{hours}h ago"
+            elif time_diff.seconds > 60:
+                minutes = time_diff.seconds // 60
+                time_ago = f"{minutes}m ago"
+            else:
+                time_ago = "Just now"
+            
+            activities.append({
+                "id": result[1],  # email
+                "amount": f"{abs(float(result[2])):.2f} THB",
+                "type": result[3],  # win/lose/tie
+                "time": time_ago,
+                "game": result[0]  # game1 or game2
+            })
+        
+        return {
+            "game_stats": [
+                {
+                    "name": "Premium Wheel",
+                    "percentage": game1_percentage,
+                    "color": "#71ddff",
+                    "total_plays": game1_total
+                },
+                {
+                    "name": "Rock-Paper-Scissors", 
+                    "percentage": game2_percentage,
+                    "color": "#4a9eff",
+                    "total_plays": game2_total
+                }
+            ],
+            "recent_activities": activities,
+            "total_plays": total_plays,
+            "status": "success"
+        }
+        
+    except Exception as e:
+        print(f"❌ Error fetching game stats: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/game1/count")
+async def get_game1_count(db: Session = Depends(get_db)):
+    """
+    Get total count of Game1 plays (accessible to authenticated users)
+    """
+    try:
+        count = db.query(Game1).count()
+        return {"count": count, "game": "Premium Wheel"}
+    except Exception as e:
+        print(f"❌ Error getting Game1 count: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/game2/count")
+async def get_game2_count(db: Session = Depends(get_db)):
+    """
+    Get total count of Game2 plays (accessible to authenticated users)
+    """
+    try:
+        count = db.query(Game2).count()
+        return {"count": count, "game": "Rock-Paper-Scissors"}
+    except Exception as e:
+        print(f"❌ Error getting Game2 count: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/report-categories")
+async def get_report_categories(db: Session = Depends(get_db)):
+    """
+    Get report categories statistics from database (real-time data)
+    """
+    try:
+        # Query to count reports by category
+        category_stats = db.query(
+            Report.category,
+            func.count(Report.id).label('count')
+        ).group_by(Report.category).all()
+        
+        # Create a mapping with all possible categories (with 0 if no reports)
+        categories_map = {
+            'technical': 0,
+            'payment': 0,
+            'account': 0,
+            'betting': 0,
+            'suggestion': 0,
+            'other': 0
+        }
+        
+        # Update with actual counts from database
+        for category, count in category_stats:
+            if category in categories_map:
+                categories_map[category] = count
+        
+        # Format response for frontend
+        report_categories = [
+            {
+                "type": "Technical Issue",
+                "value": categories_map['technical'],
+                "color": "#71ddff"
+            },
+            {
+                "type": "Payment Issue", 
+                "value": categories_map['payment'],
+                "color": "#71ddff"
+            },
+            {
+                "type": "Account Issue",
+                "value": categories_map['account'],
+                "color": "#71ddff"
+            },
+            {
+                "type": "Betting Issue",
+                "value": categories_map['betting'],
+                "color": "#71ddff"
+            },
+            {
+                "type": "Suggestion",
+                "value": categories_map['suggestion'],
+                "color": "#71ddff"
+            },
+            {
+                "type": "Other",
+                "value": categories_map['other'],
+                "color": "#71ddff"
+            }
+        ]
+        
+        print(f"📊 Report categories stats: {categories_map}")
+        return {"categories": report_categories, "total_reports": sum(categories_map.values())}
+        
+    except Exception as e:
+        print(f"❌ Error getting report categories: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 # ===============================
 # Game1 Play Tracking API
 # ===============================
@@ -820,3 +1019,263 @@ async def get_all_users_game1_stats(request: Request, db: Session = Depends(get_
     except Exception as e:
         print(f"❌ Error fetching all users game1 stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch all stats")
+
+# ===============================
+# Game2 (Rock Paper Scissors) APIs
+# ===============================
+
+class Game2BetPayload(BaseModel):
+    bet_amount: float
+    player_choice: str  # "rock", "paper", "scissors"
+    bot_choice: str     # "rock", "paper", "scissors" 
+    result: str         # "win", "lose", "tie"
+
+@app.post("/api/game2/play")
+async def play_game2(payload: Game2BetPayload, request: Request, db: Session = Depends(get_db)):
+    """
+    เล่น Game2 - Rock Paper Scissors
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # หา user จาก email
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate input
+    valid_choices = ["rock", "paper", "scissors"]
+    if payload.player_choice not in valid_choices:
+        raise HTTPException(status_code=400, detail="Player choice must be 'rock', 'paper', or 'scissors'")
+    
+    if payload.bot_choice not in valid_choices:
+        raise HTTPException(status_code=400, detail="Bot choice must be 'rock', 'paper', or 'scissors'")
+    
+    if payload.result not in ["win", "lose", "tie"]:
+        raise HTTPException(status_code=400, detail="Result must be 'win', 'lose', or 'tie'")
+    
+    if payload.bet_amount <= 0:
+        raise HTTPException(status_code=400, detail="Bet amount must be positive")
+    
+    try:
+        # ตรวจสอบยอดเงิน
+        credit = db.query(Credit).filter(Credit.user_id == user.id).first()
+        if not credit or float(credit.balance) < payload.bet_amount:
+            raise HTTPException(status_code=400, detail="Insufficient balance")
+        
+        current_balance = float(credit.balance)
+        
+        # คำนวณจำนวนเงินที่ชนะ/แพ้
+        if payload.result == "win":
+            win_loss_amount = payload.bet_amount * 2  # ชนะได้ 2 เท่า
+            new_balance = current_balance + payload.bet_amount
+        elif payload.result == "lose":
+            win_loss_amount = -payload.bet_amount  # แพ้เสียเท่าที่เดิมพัน
+            new_balance = current_balance - payload.bet_amount
+        else:  # tie
+            win_loss_amount = 0  # เสมอไม่ได้ไม่เสีย
+            new_balance = current_balance
+        
+        # อัพเดทยอดเงินในตาราง credit
+        credit.balance = Decimal(str(new_balance))
+        credit.updated_at = func.now()
+        
+        # บันทึกผลการเล่น
+        game2_play = Game2(
+            user_id=user.id,
+            bet_amount=Decimal(str(payload.bet_amount)),
+            player_choice=payload.player_choice,
+            bot_choice=payload.bot_choice,
+            result=payload.result,
+            win_loss_amount=Decimal(str(win_loss_amount)),
+            balance_before=Decimal(str(current_balance)),
+            balance_after=Decimal(str(new_balance))
+        )
+        
+        # อัพเดทสถิติ Game2 
+        stats = db.query(Game2Stats).filter(Game2Stats.user_id == user.id).first()
+        if not stats:
+            # สร้างสถิติใหม่ถ้ายังไม่มี
+            stats = Game2Stats(
+                user_id=user.id,
+                total_games_played=0,
+                total_wins=0,
+                total_losses=0,
+                total_ties=0,
+                total_bet_amount=Decimal('0.00'),
+                total_win_amount=Decimal('0.00'),
+                total_loss_amount=Decimal('0.00'),
+                net_profit_loss=Decimal('0.00'),
+                rock_played=0,
+                paper_played=0,
+                scissors_played=0,
+                first_played_at=func.now()
+            )
+            db.add(stats)
+        
+        # อัพเดทสถิติ
+        stats.total_games_played += 1
+        stats.total_bet_amount += Decimal(str(payload.bet_amount))
+        stats.last_played_at = func.now()
+        
+        if payload.result == "win":
+            stats.total_wins += 1
+            stats.total_win_amount += Decimal(str(payload.bet_amount))
+        elif payload.result == "lose":
+            stats.total_losses += 1
+            stats.total_loss_amount += Decimal(str(payload.bet_amount))
+        else:
+            stats.total_ties += 1
+        
+        # นับตัวเลือก
+        if payload.player_choice == "rock":
+            stats.rock_played += 1
+        elif payload.player_choice == "paper":
+            stats.paper_played += 1
+        elif payload.player_choice == "scissors":
+            stats.scissors_played += 1
+        
+        stats.net_profit_loss = stats.total_win_amount - stats.total_loss_amount
+        
+        # บันทึกทั้งหมด
+        db.add(credit)
+        db.add(game2_play)
+        db.add(stats)
+        db.commit()
+        db.refresh(game2_play)
+        db.refresh(credit)
+        db.refresh(stats)
+        
+        print(f"🎮 Game2 played: {email} bet {payload.bet_amount} - {payload.player_choice} vs {payload.bot_choice} = {payload.result}")
+        print(f"💰 Balance updated: {current_balance} → {float(credit.balance)}")
+        
+        return {
+            "success": True,
+            "result": {
+                "game_id": game2_play.id,
+                "player_choice": payload.player_choice,
+                "bot_choice": payload.bot_choice,
+                "result": payload.result,
+                "bet_amount": payload.bet_amount,
+                "win_loss_amount": float(win_loss_amount),
+                "balance_before": current_balance,
+                "balance_after": new_balance,
+                "message": f"You {payload.result}!"
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error in game2 play: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to process game")
+
+@app.get("/api/game2/history")
+async def get_game2_history(request: Request, limit: int = 20, offset: int = 0, db: Session = Depends(get_db)):
+    """
+    ดึงประวัติการเล่น Game2 ของผู้ใช้
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        games = db.query(Game2).filter(Game2.user_id == user.id)\
+                              .order_by(Game2.played_at.desc())\
+                              .offset(offset)\
+                              .limit(limit)\
+                              .all()
+        
+        history = []
+        for game in games:
+            history.append({
+                "id": game.id,
+                "bet_amount": float(game.bet_amount),
+                "player_choice": game.player_choice,
+                "bot_choice": game.bot_choice,
+                "result": game.result,
+                "win_loss_amount": float(game.win_loss_amount),
+                "balance_before": float(game.balance_before),
+                "balance_after": float(game.balance_after),
+                "played_at": game.played_at.isoformat()
+            })
+        
+        return {
+            "success": True,
+            "history": history,
+            "total_records": len(history)
+        }
+        
+    except Exception as e:
+        print(f"❌ Error fetching game2 history: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch history")
+
+@app.get("/api/game2/stats")
+async def get_game2_stats(request: Request, db: Session = Depends(get_db)):
+    """
+    ดึงสถิติการเล่น Game2 ของผู้ใช้
+    """
+    email = current_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        stats = db.query(Game2Stats).filter(Game2Stats.user_id == user.id).first()
+        
+        if not stats:
+            return {
+                "success": True,
+                "stats": {
+                    "total_games": 0,
+                    "total_wins": 0,
+                    "total_losses": 0,
+                    "total_ties": 0,
+                    "total_bet_amount": 0.0,
+                    "total_win_amount": 0.0,
+                    "total_loss_amount": 0.0,
+                    "net_profit_loss": 0.0,
+                    "win_percentage": 0.0,
+                    "rock_played": 0,
+                    "paper_played": 0,
+                    "scissors_played": 0,
+                    "first_played_at": None,
+                    "last_played_at": None
+                }
+            }
+        
+        total_games = stats.total_games_played
+        win_percentage = (stats.total_wins / total_games * 100) if total_games > 0 else 0
+        
+        return {
+            "success": True,
+            "stats": {
+                "total_games": total_games,
+                "total_wins": stats.total_wins,
+                "total_losses": stats.total_losses,
+                "total_ties": stats.total_ties,
+                "total_bet_amount": float(stats.total_bet_amount),
+                "total_win_amount": float(stats.total_win_amount),
+                "total_loss_amount": float(stats.total_loss_amount),
+                "net_profit_loss": float(stats.net_profit_loss),
+                "win_percentage": round(win_percentage, 2),
+                "rock_played": stats.rock_played,
+                "paper_played": stats.paper_played,
+                "scissors_played": stats.scissors_played,
+                "first_played_at": stats.first_played_at.isoformat() if stats.first_played_at else None,
+                "last_played_at": stats.last_played_at.isoformat() if stats.last_played_at else None
+            }
+        }
+        
+    except Exception as e:
+        print(f"❌ Error fetching game2 stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch stats")

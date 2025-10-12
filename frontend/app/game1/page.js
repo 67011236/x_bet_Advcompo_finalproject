@@ -136,12 +136,10 @@ export default function Game1() {
             const game1PlayData = {
               bet_amount: betAmount,
               selected_color: selectedColor,
-              result_color: landedOnBlue ? "blue" : "white",
-              won: playerWins,
-              payout_amount: playerWins ? betAmount : -betAmount
+              result_color: landedOnBlue ? "blue" : "white"
             };
 
-            const game1Response = await fetch("http://localhost:8000/api/game1-play", {
+            const game1Response = await fetch("http://localhost:8000/api/game1/play", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
